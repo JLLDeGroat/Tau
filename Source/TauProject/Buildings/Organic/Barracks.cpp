@@ -129,7 +129,7 @@ void ABarracks::SetBarracksMesh(bool placed) {
 
 #pragma endregion
 
-#pragma region Building Meshe changes
+#pragma region Building Mesh changes
 
 void ABarracks::SetMeshOnState() {
 	if (CurrentBuildingState == EBuildStates::BS_Complete) {

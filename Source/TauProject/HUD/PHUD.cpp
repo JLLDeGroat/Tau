@@ -45,6 +45,18 @@ void APHUD::BeginPlay() {
 #pragma region Widgets
 
 void APHUD::InitializeWidgets() {
+
+	FStringClassReference ResourceWidgetClassRef(TEXT("/Game/Blueprints/Widgets/Resource.Resource_C"));
+	if (UClass* ResourceWidgetClass = ResourceWidgetClassRef.TryLoadClass<UUserWidget>()) {
+		ResourceWidget = CreateWidget<UUserWidget>(GetWorld(), ResourceWidgetClass);
+		ResourceWidget->AddToViewport();
+		ShowWidget(ResourceWidget);
+	}
+	else {
+		Debug("Failed To Get Resource widget");
+	}
+
+
 	FStringClassReference SelectionWidgetClassRef(TEXT("/Game/Blueprints/Widgets/Selection.Selection_C"));
 	if (UClass* SelectionWidgetClass = SelectionWidgetClassRef.TryLoadClass<UUserWidget>())
 	{
@@ -58,15 +70,6 @@ void APHUD::InitializeWidgets() {
 		Debug("Failed To Get Selection Widget");
 	}
 
-	FStringClassReference ResourceWidgetClassRef(TEXT("/Game/Blueprints/Widgets/Resource.Resource_C"));
-	if (UClass* ResourceWidgetClass = ResourceWidgetClassRef.TryLoadClass<UUserWidget>()) {
-		ResourceWidget = CreateWidget<UUserWidget>(GetWorld(), ResourceWidgetClass);
-		ResourceWidget->AddToViewport();
-		ShowWidget(ResourceWidget);
-	}
-	else {
-		Debug("Failed To Get Resource widget");
-	}
 }
 
 void APHUD::ShowWidget(TEnumAsByte<EWidgets::EWidgetToShow> widget) {

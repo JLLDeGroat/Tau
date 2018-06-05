@@ -15,6 +15,7 @@
 
 #include "Buildings/Building.h"
 #include "Buildings/Organic/Barracks.h"
+#include "Buildings/Organic/Storage.h"
 
 #include "Units/Units.h"
 #include "Units/Organic/Pea.h"
@@ -214,6 +215,10 @@ ABuilding* APController::FindOrSpawnBuilding(TEnumAsByte<EAvailableBuildings::EA
 			if(Find) return NewObject<ABarracks>();
 			else return GetWorld()->SpawnActor<ABarracks>();
 			break;
+
+		case EAvailableBuildings::EAvailableBuildings::B_Storage:
+			if (Find) return NewObject<AStorage>();
+			else return GetWorld()->SpawnActor<AStorage>();
 
 		case EAvailableBuildings::EAvailableBuildings::B_None:
 			return nullptr;

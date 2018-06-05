@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Storage.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "TimerManager.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "ConstructorHelpers.h"
@@ -11,9 +13,6 @@
 // Sets default values
 AStorage::AStorage()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
 	Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BuildingBody"));
 	Box->SetupAttachment(RootComponent);
 
@@ -64,6 +63,9 @@ AStorage::AStorage()
 	Health = 1;
 	MaxHealth = 350;
 
+
+	PrimaryActorTick.bCanEverTick = true;
+	SetActorTickInterval(1);
 }
 
 // Called when the game starts or when spawned
@@ -76,5 +78,72 @@ void AStorage::BeginPlay()
 void AStorage::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	if (!IsPlaced) {
+		CheckIsValidPlacement();
+		SetStorageMesh(IsPlaced);
+	}
+	else {
+		SetMeshOnState();
+	}
 }
 
+
+#pragma region Overlaps
+
+void AStorage::StartOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
+	FString sentence = "Actor: " + OtherActor->GetName() + " Component: " + OtherComp->GetName();
+	if (!IsPlaced && OtherActor != this) {
+		OverlappingComponents.Add(OtherComp);
+	}
+}
+
+void AStorage::EndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
+	if (!IsPlaced && OtherActor != this) {
+		OverlappingComponents.Remove(OtherComp);
+	}
+}
+
+#pragma endregion
+
+#pragma region Placing Building
+
+void AStorage::SetStorageMesh(bool placed) {
+
+	if (!placed) {
+		if (GetIsValidPlacement()) {
+			Box->SetStaticMesh(BuildingMesh);
+		}
+		else {
+			Box->SetStaticMesh(FailedBuildingMesh);
+		}
+	}
+}
+
+#pragma endregion
+
+#pragma region Building Mesh changes
+
+void AStorage::SetMeshOnState() {
+	if (CurrentBuildingState == EBuildStates::BS_Complete) {
+		Box->SetStaticMesh(BuildingMesh);
+	}
+	if (CurrentBuildingState == EBuildStates::BS_Constructing1) {
+		Box->SetStaticMesh(Stage1Construction);
+	}
+	if (CurrentBuildingState == EBuildStates::BS_Constructing2) {
+		Box->SetStaticMesh(Stage2Construction);
+	}
+	if (CurrentBuildingState == EBuildStates::BS_Constructing3) {
+		Box->SetStaticMesh(Stage3Construction);
+	}
+	if (CurrentBuildingState == EBuildStates::BS_Damaged1) {
+		Box->SetStaticMesh(Stage1Damage);
+	}
+	if (CurrentBuildingState == EBuildStates::BS_Damaged2) {
+		Box->SetStaticMesh(Stage2Damage);
+	}
+	if (CurrentBuildingState == EBuildStates::BS_Damaged3) {
+		Box->SetStaticMesh(Stage3Damage);
+	}
+}
+#pragma endregion

@@ -46,7 +46,8 @@ namespace EAvailableBuildings
 	enum  EAvailableBuildings
 	{
 		B_None						UMETA(DisplayName = "None"),
-		B_Barracks					UMETA(DisplayName = "Barracks")
+		B_Barracks					UMETA(DisplayName = "Barracks"),
+		B_Storage					UMETA(DisplayName = "Storage")
 	};
 }
 
