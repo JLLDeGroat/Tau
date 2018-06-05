@@ -57,6 +57,7 @@ namespace EUnitInstructions
 		UI_Construct				UMETA(DisplayName = "Constructing"),
 		UI_Attack					UMETA(DisplayName = "Attack"),
 		UI_Gather					UMETA(DisplayName = "Gather"),	
+		UI_DropOff					UMETA(DisplayName = "DropOff"),
 		UI_Multiple					UMETA(DisplayName = "Multiple"),
 		UI_Move						UMETA(DisplayName = "Move")
 

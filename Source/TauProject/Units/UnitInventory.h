@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Units\UnitStructs.h"
+#include "Units/UnitStructs.h"
 #include "UObject/NoExportTypes.h"
 #include "UnitInventory.generated.h"
 

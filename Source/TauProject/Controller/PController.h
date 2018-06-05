@@ -126,6 +126,9 @@ public:
 	#pragma region Building Buildings
 
 	UPROPERTY()
+		TArray<AActor*> OwnedBuildings;
+
+	UPROPERTY()
 		bool IsPlacingBuilding;
 
 	ABuilding* BuildingToPlace;
@@ -140,6 +143,9 @@ public:
 	void KeepBuildingAtMouse();
 
 	void PlaceBuilding();
+
+	void AddToOwnedBuildings(AActor* actor);
+	void RemoveFromOwnedBuildings(AActor* actor);
 
 	#pragma endregion
 

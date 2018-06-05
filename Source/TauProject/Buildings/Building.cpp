@@ -26,6 +26,8 @@ void ABuilding::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	Debug("Building Health: " + FString::SanitizeFloat(Health));
+
+	if (IsPlaced) ChangeStateOnHealthChange();
 }
 
 #pragma region Building Placement
@@ -114,6 +116,36 @@ void ABuilding::SubtractFromHealth(float amount) {
 
 void ABuilding::SetHealthToMax() {
 	this->Health = this->MaxHealth;
+}
+
+void ABuilding::ChangeStateOnHealthChange() {
+	float healthAsPercent = (Health / MaxHealth) * 100;
+
+	if (!IsConstructed) {
+		if (healthAsPercent > 35 && healthAsPercent < 59) {
+			SetBuildingState(EBuildStates::BS_Constructing1);
+		}
+		if (healthAsPercent >= 59 && healthAsPercent < 90) {
+			SetBuildingState(EBuildStates::BS_Constructing2);
+		}
+		if (healthAsPercent >= 90) {
+			SetBuildingState(EBuildStates::BS_Constructing3);
+		}	
+		if (healthAsPercent >= 100) {
+			SetBuildingState(EBuildStates::BS_Complete);
+		}
+	}
+	else if (IsConstructed) {
+		if (healthAsPercent < 90 && healthAsPercent >= 60) {
+			SetBuildingState(EBuildStates::BS_Damaged1);
+		}
+		if (healthAsPercent < 60 && healthAsPercent >= 30) {
+			SetBuildingState(EBuildStates::BS_Damaged2);
+		}
+		if (healthAsPercent < 30) {
+			SetBuildingState(EBuildStates::BS_Damaged3);
+		}
+	}
 }
 
 #pragma endregion

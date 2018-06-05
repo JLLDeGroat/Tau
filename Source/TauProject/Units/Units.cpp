@@ -6,6 +6,7 @@
 #include "UnitTasks.h"
 #include "Buildings/Building.h"
 #include "Resources/Resource.h"
+#include "Controller/PController.h"
 #include "Engine/Engine.h"
 
 // Sets default values
@@ -108,7 +109,7 @@ void AUnits::WithinRangeOfAttack(UPrimitiveComponent* OverlappedComp, AActor* Ot
 		}
 
 		if (AResource * resource = Cast<AResource>(OtherActor)) {
-			if (IsTaskedToHarvest() && IsTaskedToHarvestFoundActor(OtherActor) || HasNoTaskAndFoundResourceToHarvest()) {
+			if (IsTaskedToHarvest() && IsTaskedToHarvestFoundActor(OtherActor) || HasNoTaskAndFoundResourceToHarvest(OtherActor)) {
 				if (CanHarvest && resource->ResourceCount > 0) {
 					LookAt(OtherActor);
 					this->GetController()->StopMovement();
@@ -359,9 +360,62 @@ void AUnits::HarvestTick() {
 	}
 
 	AResource* resource = Cast<AResource>(HarvestingActor);
-	Inventory->AddToResourceCount(resource->RemoveAmountFromCount(AmountHarvested);
+	Inventory->AddToResourceCount(resource->RemoveAmountFromCount(AmountHarvested), resource->GetResourceType());
 	//remove amount from the resource.;
-	
+
+	if (Inventory->IsInventoryFull()) {
+
+		AResource* resource = Cast<AResource>(UnitTask->GetFirstTask()->GetTargetActor());
+		ABuilding* storage = Cast<ABuilding>(FindNearestStorageBuilding());
+
+		UnitTask->RemoveFirstTask();
+
+		if (storage == nullptr) return;
+
+		UnitTask->CreateAndAddTaskAUTO("auto drop off", this->GetActorLocation(), storage->GetActorLocation(), storage, EUnitInstructions::UI_DropOff);
+		UnitTask->CreateAndAddTaskAUTO("auto return and gather", this->GetActorLocation(), resource->GetActorLocation(), resource, EUnitInstructions::UI_Gather, false);
+				
+		UNavigationSystem::SimpleMoveToActor(this->GetController(), storage);
+	}	
+}
+
+AActor* AUnits::FindNearestStorageBuilding() {
+	if (APController* con = Cast<APController>(this->GetController())) {
+		FVector location = this->GetActorLocation();
+		float distance = -1;
+		bool foundStorage = false;
+
+		TArray<ABuilding*> StorageBuildings;
+		ABuilding* ClosestBuilding = nullptr;
+
+		for (int32 i = 0; i < con->OwnedBuildings.Num(); i++) {
+			ABuilding* building = Cast<ABuilding>(con->OwnedBuildings[i]);
+			if (building->CanStore) {
+				StorageBuildings.Add(building);
+				foundStorage = true;
+			}
+		}
+
+		if (!foundStorage) {
+			Debug("this Actor: " + this->GetName() + " Could not find a storage building");
+			UnitTask->RemoveFirstTask();
+			this->GetController()->StopMovement();
+			return nullptr;
+		}
+
+		for (int32 i = 0; i < StorageBuildings.Num(); i++) {
+			float newDistance = FVector::Dist(this->GetActorLocation(), StorageBuildings[i]->GetActorLocation());
+			if (distance == -1 || distance > newDistance) {
+				distance = newDistance;
+				ClosestBuilding = StorageBuildings[i];
+			}
+		}		
+
+		return ClosestBuilding;
+	}
+	else {
+		return nullptr;
+	}
 }
 
 #pragma endregion

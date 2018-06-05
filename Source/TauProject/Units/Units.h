@@ -85,6 +85,7 @@ public:
 	bool HasNoTaskAndFoundResourceToHarvest(AActor* actor);
 
 	void HarvestTick();
+	AActor* FindNearestStorageBuilding();
 
 	#pragma endregion
 

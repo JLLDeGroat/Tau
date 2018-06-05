@@ -156,3 +156,4 @@ void ABarracks::SetMeshOnState() {
 }
 
 #pragma endregion
+

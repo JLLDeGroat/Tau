@@ -252,6 +252,8 @@ void APController::PlaceBuilding() {
 	IsPlacingBuilding = false;
 	BuildingToPlace->PlaceBuilding();
 
+	AddToOwnedBuildings(BuildingToPlace);
+
 	for (int32 i = 0; i < SelectedUnits.Num(); i++) {
 		if (SelectedUnits[i]->CanBuild) {
 			//Cast<APea>(SelectedUnits[i]).
@@ -265,6 +267,24 @@ void APController::PlaceBuilding() {
 	SelectedUnits.Empty(); // empty 
 	//UpdateOwnedBuildings();
 }
+
+
+void APController::AddToOwnedBuildings(AActor* actor) {
+	for (int32 i = 0; i < OwnedBuildings.Num(); i++) {
+		if (actor == OwnedBuildings[i]) return;
+	}
+	OwnedBuildings.Add(actor);
+}
+
+void APController::RemoveFromOwnedBuildings(AActor* actor) {
+	for (int32 i = 0; i < OwnedBuildings.Num(); i++) {
+		if (actor == OwnedBuildings[i]) {
+			OwnedBuildings.RemoveAt(i);
+			return;
+		}
+	}
+}
+
 #pragma endregion
 
 void APController::Debug(FString string) {

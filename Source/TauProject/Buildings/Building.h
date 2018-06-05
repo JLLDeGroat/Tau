@@ -41,9 +41,15 @@ public:
 	UPROPERTY(EditAnywhere, category = BuildingGlobal)
 		float MineralCost;
 
+	UPROPERTY(EditAnywhere, category = BuildingGlobal)
+		bool CanStore;
+
 	#pragma region Spawning
 	UPROPERTY()
 		bool IsPlaced;
+
+	UPROPERTY()
+		bool IsConstructed;
 
 	UPROPERTY()
 		bool CanPlace;
@@ -64,6 +70,8 @@ public:
 	void AddToHealth(float amount);
 	void SubtractFromHealth(float amount);
 	void SetHealthToMax();
+
+	void ChangeStateOnHealthChange();
 
 	#pragma endregion
 
