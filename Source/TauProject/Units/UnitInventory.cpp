@@ -1,16 +1,16 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "UnitInventory.h"
+#include "PlayerResource/EResource.h"
 
 
 
-
-bool UUnitInventory::CanAddResourcetoCount(TEnumAsByte<EUnitInventory::Resource> resource, float amount) {
+bool UUnitInventory::CanAddResourcetoCount(TEnumAsByte<EResources::All> resource, float amount) {
 	return IsRightResourceType(resource) && CanFitInInventory(amount);
 }
 
-bool UUnitInventory::IsRightResourceType(TEnumAsByte<EUnitInventory::Resource> resource) {
-	if (GetCurrentResourceType() == resource || GetCurrentResourceType() == EUnitInventory::Resource::UR_None) {
+bool UUnitInventory::IsRightResourceType(TEnumAsByte<EResources::All> resource) {
+	if (GetCurrentResourceType() == resource || GetCurrentResourceType() == EResources::All::R_None) {
 		return true;
 	}
 	return false;
@@ -20,8 +20,8 @@ bool UUnitInventory::CanFitInInventory(float amount) {
 	return GetCurrentResourceCount() < GetMaxResourceCount();
 }
 
-void UUnitInventory::AddToResourceCount(float count, TEnumAsByte<EUnitInventory::Resource> resource) {
-	if (GetCurrentResourceType() == EUnitInventory::Resource::UR_None)
+void UUnitInventory::AddToResourceCount(float count, TEnumAsByte<EResources::All> resource) {
+	if (GetCurrentResourceType() == EResources::All::R_None)
 		SetCurrentResourceType(resource);
 
 	ResourceCount += count;
@@ -38,7 +38,7 @@ float UUnitInventory::GetCurrentResourceCount() {
 	return this->ResourceCount;
 }
 
-TEnumAsByte<EUnitInventory::Resource> UUnitInventory::GetCurrentResourceType() {
+TEnumAsByte<EResources::All> UUnitInventory::GetCurrentResourceType() {
 	return this->ResourceType;
 }
 
@@ -50,7 +50,7 @@ float UUnitInventory::GetMaxResourceCount() {
 
 #pragma region Setter
 
-void UUnitInventory::SetCurrentResourceType(TEnumAsByte<EUnitInventory::Resource> resource) {
+void UUnitInventory::SetCurrentResourceType(TEnumAsByte<EResources::All> resource) {
 	ResourceType = resource;
 }
 

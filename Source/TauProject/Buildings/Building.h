@@ -4,6 +4,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Buildings/BuildingStructs.h"
+#include "PlayerResource/ResourceCost.h"
 #include "Building.generated.h"
 
 UCLASS()
@@ -34,15 +35,16 @@ public:
 
 	UPROPERTY(EditAnywhere, category = BuildingGlobal)
 		float MaxHealth;
-
-	UPROPERTY(EditAnywhere, category = BuildingGlobal)
-		float LumberCost;
-
-	UPROPERTY(EditAnywhere, category = BuildingGlobal)
-		float MineralCost;
-
+		
 	UPROPERTY(EditAnywhere, category = BuildingGlobal)
 		bool CanStore;
+
+	#pragma region Costing
+	UPROPERTY()
+		TArray<UResourceCost*> BuildCost;
+
+	TArray<UResourceCost*> GetBuildCost();
+	#pragma endregion
 
 	#pragma region Spawning
 	UPROPERTY()

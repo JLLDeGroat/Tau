@@ -6,6 +6,8 @@
 #include "Buildings/Building.h"
 #include "Buildings/BuildingStructs.h"
 #include "ControllerStructs.h"
+#include "PlayerResource/All.h"
+#include "PlayerResource/EResource.h"
 #include "PController.generated.h"
 
 
@@ -49,78 +51,13 @@ public:
 	#pragma region Resources
 
 	UPROPERTY()
-		float CurrentMinerals;
-
-	UPROPERTY()
-		float CurrentLumber;
-
-	UPROPERTY()
-		float CurrentCopper;
-
-	UPROPERTY()
-		float CurrentIron;
-
-	UPROPERTY()
-		float CurrentSteel;
-
-	UPROPERTY()
-		float CurrentFood;
+	UAll* resources;
 
 	UFUNCTION(BlueprintCallable)
-		float GetCurrentMinerals();
+	float GetResourceCount(TEnumAsByte<EResources::All> resource);
 
-	UFUNCTION(BlueprintCallable)
-		float GetCurrentLumber();
-
-	UFUNCTION(BlueprintCallable)
-		float GetCurrentCopper();
-
-	UFUNCTION(BlueprintCallable)
-		float GetCurrentIron();
-
-	UFUNCTION(BlueprintCallable)
-		float GetCurrentSteel();
-
-	UFUNCTION(BlueprintCallable)
-		float GetCurrentFood();
-
-	UFUNCTION(BlueprintCallable)
-		void AddToCurrentMinerals(float minerals);
-
-	UFUNCTION(BlueprintCallable)
-		void SubtractFromCurrentMinerals(float minerals);
-
-	UFUNCTION(BlueprintCallable)
-		void AddToCurrentLumber(float lumber);
-
-	UFUNCTION(BlueprintCallable)
-		void SubtractFromCurrentLumber(float lumber);
-
-	UFUNCTION(BlueprintCallable)
-		void AddToCurrentCopper(float copper);
-
-	UFUNCTION(BlueprintCallable)
-		void SubtractFromCurrentCopper(float copper);
-
-	UFUNCTION(BlueprintCallable)
-		void AddToCurrentIron(float iron);
-
-	UFUNCTION(BlueprintCallable)
-		void SubtractFromCurrentIron(float iron);
-
-	UFUNCTION(BlueprintCallable)
-		void AddToCurrentSteel(float steel);
-
-	UFUNCTION(BlueprintCallable)
-		void SubtractFromCurrentSteel(float steel);
-
-	UFUNCTION(BlueprintCallable)
-		void AddToCurrentFood(float food);
-
-	UFUNCTION(BlueprintCallable)
-		void SubractFromCurrentFood(float food);
+	void AffectResourceCount(TEnumAsByte<EResources::All> resource, float amount, bool IsAdd);
 	
-
 	#pragma endregion
 
 	#pragma region Building Buildings

@@ -2,6 +2,7 @@
 
 #include "Resource.h"
 #include "Units/UnitStructs.h"
+#include "PlayerResource/EResource.h"
 
 // Sets default values
 AResource::AResource()
@@ -31,8 +32,12 @@ float AResource::GetCurrentResourceCount() {
 	return ResourceCount;
 }
 
-TEnumAsByte<EUnitInventory::Resource> AResource::GetResourceType() {
+TEnumAsByte<EResources::All> AResource::GetResourceType() {
 	return ResourceType;
+}
+
+float AResource::SetInitialResources(TEnumAsByte<EResources::All> resource) {
+	return FMath::RandRange(100, 501);
 }
 
 #pragma endregion

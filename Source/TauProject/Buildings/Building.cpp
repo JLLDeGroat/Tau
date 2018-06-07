@@ -2,6 +2,7 @@
 
 #include "Building.h"
 #include "Components/StaticMeshComponent.h"
+#include "PlayerResource/ResourceCost.h"
 #include "Buildings/BuildingStructs.h"
 #include "Engine/Engine.h"
 
@@ -25,10 +26,15 @@ void ABuilding::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	Debug("Building Health: " + FString::SanitizeFloat(Health));
-
 	if (IsPlaced) ChangeStateOnHealthChange();
 }
+
+#pragma region build costs
+
+TArray<UResourceCost*> ABuilding::GetBuildCost() {
+	return BuildCost;
+}
+#pragma endregion
 
 #pragma region Building Placement
 

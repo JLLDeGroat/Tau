@@ -2,6 +2,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Units/UnitStructs.h"
+#include "PlayerResource/EResource.h"
 #include "GameFramework/Actor.h"
 #include "Resource.generated.h"
 
@@ -42,19 +43,21 @@ public:
 		bool IsDepleted;
 
 	UPROPERTY(EditAnywhere, Category = GlobalResource)
-		TEnumAsByte<EUnitInventory::Resource> ResourceType;
+		TEnumAsByte<EResources::All> ResourceType;
 
 	#pragma region Getters
 
 	UFUNCTION(BlueprintCallable)
 		float GetCurrentResourceCount();
 
-	TEnumAsByte<EUnitInventory::Resource> GetResourceType();
+	TEnumAsByte<EResources::All> GetResourceType();
 	#pragma endregion
 
 	#pragma region Setters
 
 	void SetIsDepleted();
+
+	float SetInitialResources(TEnumAsByte<EResources::All> resource);
 	
 	
 

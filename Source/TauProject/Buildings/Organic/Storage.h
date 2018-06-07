@@ -34,6 +34,8 @@ public:
 	UStaticMesh* Stage1Damage;
 	UStaticMesh* Stage2Damage;
 	UStaticMesh* Stage3Damage;
+
+	void SetBuildCosts();
 	
 	UFUNCTION()
 		void StartOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

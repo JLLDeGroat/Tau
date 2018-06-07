@@ -34,6 +34,7 @@ public:
 
 	void MoveUnitAndConstruct(AActor* Building, FVector Location);
 	void MoveUnitAndAttack(AActor* actor);
+	void MoveUnitAndHarvest(AActor* actor, FVector location);
 
 	void IsMovementInstructionComplete();
 	void IsAttackInstructionComplete();

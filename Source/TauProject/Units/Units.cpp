@@ -47,7 +47,6 @@ void AUnits::BeginPlay()
 	RangeSphere->SetSphereRadius(AttackRange);	
 
 	UnitTask = NewObject<UUnitTasks>();
-	Inventory = NewObject<UUnitInventory>();
 }
 
 // Called every frame
@@ -56,13 +55,17 @@ void AUnits::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (!this->IsDead && this->Health > 0) {
 
-		FString string = "Ticked " + FString::SanitizeFloat(DeltaTime);
-
-		GEngine->AddOnScreenDebugMessage(-1, 4, FColor::Black, string);
-
+		//FString string = "Ticked " + FString::SanitizeFloat(DeltaTime);
+		
 		if (bIsAttacking) AttackTick();
 		if (IsBuilding) BuildBuilding();
 		if (IsHarvesting) HarvestTick();
+
+		if (IsHarvesting) Debug("Is Harvesting");
+
+		if (UnitTask->HasTask()) {
+			Debug(UnitTask->GetFirstTask()->Name);
+		}
 
 
 		if (UnitTask != nullptr && UnitTask->HasTask() && UnitTask->GetFirstTask()->GetInstruction() == EUnitInstructions::UI_Move) IsMovementInstructionComplete();
@@ -110,10 +113,11 @@ void AUnits::WithinRangeOfAttack(UPrimitiveComponent* OverlappedComp, AActor* Ot
 
 		if (AResource * resource = Cast<AResource>(OtherActor)) {
 			if (IsTaskedToHarvest() && IsTaskedToHarvestFoundActor(OtherActor) || HasNoTaskAndFoundResourceToHarvest(OtherActor)) {
-				if (CanHarvest && resource->ResourceCount > 0) {
+				if (CanHarvest && resource->GetCurrentResourceCount() > 0) {
 					LookAt(OtherActor);
 					this->GetController()->StopMovement();
 					IsHarvesting = true;
+					HarvestingActor = OtherActor;
 				}
 			}
 		}
@@ -149,7 +153,7 @@ void AUnits::MoveUnit(AActor* ActorAtLocation, FVector Location, int32 UnitNumbe
 	}
 
 	else if (AResource* resource = Cast<AResource>(ActorAtLocation)) {
-		
+		MoveUnitAndHarvest(ActorAtLocation, ActorAtLocation->GetActorLocation());
 	}
 
 	UNavigationSystem::SimpleMoveToLocation(GetController(), Location); // set movement	
@@ -169,6 +173,11 @@ void AUnits::MoveUnitAndAttack(AActor* actor) {
 void AUnits::MoveUnitAndConstruct(AActor* building, FVector location) {
 	UnitTask->CreateAndAddTask("Test Task", this->GetActorLocation(), location, building, EUnitInstructions::UI_Construct);		
 	UNavigationSystem::SimpleMoveToActor(GetController(), building);
+}
+
+void AUnits::MoveUnitAndHarvest(AActor* resource, FVector location) {
+	UnitTask->CreateAndAddTask("Harvest task", this->GetActorLocation(), location, resource, EUnitInstructions::UI_Gather);
+	UNavigationSystem::SimpleMoveToActor(GetController(), resource);
 }
 
 void AUnits::IsMovementInstructionComplete() {	
@@ -370,7 +379,11 @@ void AUnits::HarvestTick() {
 
 		UnitTask->RemoveFirstTask();
 
-		if (storage == nullptr) return;
+		if (storage == nullptr) {
+			IsHarvesting = false;
+			Debug("Could not find Storage building");
+			return;
+		}
 
 		UnitTask->CreateAndAddTaskAUTO("auto drop off", this->GetActorLocation(), storage->GetActorLocation(), storage, EUnitInstructions::UI_DropOff);
 		UnitTask->CreateAndAddTaskAUTO("auto return and gather", this->GetActorLocation(), resource->GetActorLocation(), resource, EUnitInstructions::UI_Gather, false);

@@ -63,14 +63,3 @@ namespace EUnitInstructions
 
 	};
 }
-
-UENUM(BlueprintType)
-namespace EUnitInventory {
-	enum Resource {
-		UR_None						UMETA(DisplayName = "None"),
-		UR_Lumber					UMETA(DisplayName = "Lumber"),
-		UR_Copper					UMETA(DisplayName = "Copper"),
-		UR_Iron						UMETA(DisplayName = "Iron"),
-		UR_Steel					UMETA(DisplayName = "Steel")
-	};
-}

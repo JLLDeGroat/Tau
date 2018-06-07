@@ -24,16 +24,28 @@
 #include "Engine/Engine.h"
 #include "Blueprint/UserWidget.h"
 
+#include "PlayerResource/EResource.h" 
+#include "PlayerResource/All.h"
+#include "PlayerResource/ResourceCost.h"
+
 APController::APController() {
 	bShowMouseCursor = true;
 	bEnableClickEvents = true;
 	bEnableTouchEvents = true;	
+	
+	//basic
+	
 }
 
 // GET HUD
 void APController::BeginPlay() {
 	Super::BeginPlay();
 	Hudptr = Cast<APHUD>(GetHUD()); // Hud ptr
+
+	resources = NewObject<UAll>();
+
+	resources->AffectResourceCounter(EResources::R_Lumber, 20, true);
+	resources->AffectResourceCounter(EResources::R_Stone, 20, true);
 }
 
 
@@ -120,78 +132,13 @@ void APController::RightMouseClickRelease() {
 
 #pragma region Resource Management
 
-float APController::GetCurrentMinerals() {
-	return CurrentMinerals;
+float APController::GetResourceCount(TEnumAsByte<EResources::All> resource) {
+	return resources->GetResourceCount(resource);
 }
 
-float APController::GetCurrentLumber() {
-	return CurrentLumber;
+void APController::AffectResourceCount(TEnumAsByte<EResources::All> resource, float amount, bool IsAdd) {
+	resources->AffectResourceCounter(resource, amount, IsAdd);
 }
-
-float APController::GetCurrentCopper() {
-	return CurrentCopper;
-}
-
-float APController::GetCurrentIron() {
-	return CurrentIron;
-}
-
-float APController::GetCurrentSteel() {
-	return CurrentSteel;
-}
-
-float APController::GetCurrentFood() {
-	return CurrentFood;
-}
-
-void APController::AddToCurrentMinerals(float minerals) {
-	CurrentMinerals += minerals;
-}
-
-void APController::SubtractFromCurrentMinerals(float minerals) {
-	CurrentMinerals -= minerals;
-}
-
-void APController::AddToCurrentLumber(float lumber) {
-	CurrentLumber += lumber;
-}
-
-void APController::SubtractFromCurrentLumber(float lumber) {
-	CurrentLumber -= lumber;
-}
-
-void APController::AddToCurrentCopper(float copper) {
-	CurrentCopper += copper;
-}
-
-void APController::SubtractFromCurrentCopper(float copper) {
-	CurrentCopper -= copper;
-}
-
-void APController::AddToCurrentIron(float iron) {
-	CurrentIron += iron;
-}
-
-void APController::SubtractFromCurrentIron(float iron) {
-	CurrentIron -= iron;
-}
-
-void APController::AddToCurrentSteel(float steel) {
-	CurrentSteel += steel;
-}
-
-void APController::SubtractFromCurrentSteel(float steel) {
-	CurrentSteel -= steel;
-}
-
-void APController::AddToCurrentFood(float food) {
-	CurrentFood += food;
-}
-
-void APController::SubractFromCurrentFood(float food) {
-	CurrentFood -= food;
-}
-
 
 #pragma endregion 
 
@@ -227,11 +174,7 @@ ABuilding* APController::FindOrSpawnBuilding(TEnumAsByte<EAvailableBuildings::EA
 }
 
 bool APController::CanBuyBuilding(ABuilding* building) {
-	if (GetCurrentMinerals() >= building->MineralCost && 
-		GetCurrentLumber()   >= building->LumberCost) 
-		return true;	
-	else 
-		return false;
+	return resources->CanAffordResourceList(building->GetBuildCost());
 }
 
 void APController::KeepBuildingAtMouse() {
@@ -259,8 +202,11 @@ void APController::PlaceBuilding() {
 
 	AddToOwnedBuildings(BuildingToPlace);
 
+	resources->AffectResouceListOnCounter(BuildingToPlace->GetBuildCost(), false);
+
 	for (int32 i = 0; i < SelectedUnits.Num(); i++) {
 		if (SelectedUnits[i]->CanBuild) {
+			SelectedUnits[i]->MoveUnit(BuildingToPlace, BuildingToPlace->GetActorLocation(), i, SelectedUnits.Num());
 			//Cast<APea>(SelectedUnits[i]).
 			//SelectedUnits[i]->SetUnitInstruction(EUnitInstructions::UI_Construct, "building", ToSpawn, ToSpawn->GetActorLocation());
 		}

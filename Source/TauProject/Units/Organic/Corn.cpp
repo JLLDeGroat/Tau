@@ -2,6 +2,7 @@
 
 #include "Corn.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Units/UnitInventory.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "ConstructorHelpers.h"
@@ -46,6 +47,14 @@ ACorn::ACorn()
 	Health = 100;
 	MaxHealth = 100;
 	Attack = 7;
+
+
+	CanHarvest = true;
+	HarvestRate = 1;
+
+	//inventory
+	Inventory = NewObject<UUnitInventory>();
+	Inventory->MaxResourceCount = 6;
 }
 
 // Called when the game starts or when spawned

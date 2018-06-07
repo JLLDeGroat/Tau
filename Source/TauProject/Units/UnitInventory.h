@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Units/UnitStructs.h"
+#include "PlayerResource/EResource.h"
 #include "UObject/NoExportTypes.h"
 #include "UnitInventory.generated.h"
 
@@ -25,13 +26,13 @@ public:
 		float MaxResourceCount;
 
 	UPROPERTY()
-		TEnumAsByte<EUnitInventory::Resource> ResourceType;
+		TEnumAsByte<EResources::All> ResourceType;
 	
 
-	bool CanAddResourcetoCount(TEnumAsByte<EUnitInventory::Resource> resource, float amount);
-	void AddToResourceCount(float count, TEnumAsByte<EUnitInventory::Resource> resource);
+	bool CanAddResourcetoCount(TEnumAsByte<EResources::All> resource, float amount);
+	void AddToResourceCount(float count, TEnumAsByte<EResources::All> resource);
 
-	bool IsRightResourceType(TEnumAsByte<EUnitInventory::Resource> resource);
+	bool IsRightResourceType(TEnumAsByte<EResources::All> resource);
 	bool CanFitInInventory(float amount);
 
 	bool IsInventoryFull();
@@ -39,10 +40,10 @@ public:
 	
 	#pragma region Getters & Setters
 
-	void SetCurrentResourceType(TEnumAsByte<EUnitInventory::Resource> resource);
+	void SetCurrentResourceType(TEnumAsByte<EResources::All> resource);
 
 	float GetCurrentResourceCount();
 	float GetMaxResourceCount();
-	TEnumAsByte<EUnitInventory::Resource> GetCurrentResourceType();
+	TEnumAsByte<EResources::All> GetCurrentResourceType();
 	#pragma endregion
 };
