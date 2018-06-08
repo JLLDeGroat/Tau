@@ -476,6 +476,9 @@ void AUnits::AttemptToFindAnotherResourceOfType(AActor* res) {
 	TArray<AResource*> resourcesFound;
 
 	bool resourceFound;
+	float distancetoResource = -1;
+
+	AResource* closestResource = nullptr;
 
 	for (TActorIterator<AResource> ActorItr(GetWorld()); ActorItr; ++ActorItr)
 	{
@@ -493,9 +496,16 @@ void AUnits::AttemptToFindAnotherResourceOfType(AActor* res) {
 	}
 
 	for (int32 i = 0; i < resourcesFound.Num(); i++) {
-
+		float newDistance = FVector::Dist(this->GetActorLocation(), resourcesFound[i]->GetActorLocation());
+		if (distancetoResource == -1 || distancetoResource > newDistance) {
+			distancetoResource = newDistance;
+			closestResource = resourcesFound[i];
+		}
 	}
 
+	if (distancetoResource != -1) {
+		UnitTask->CreateAndAddTaskAUTO("Auto harvest new resource", this->GetActorLocation(), closestResource->GetActorLocation(), closestResource, EUnitInstructions::UI_Gather);
+	}
 }
 
 #pragma endregion
