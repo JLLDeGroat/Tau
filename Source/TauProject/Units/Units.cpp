@@ -8,7 +8,7 @@
 #include "Resources/Resource.h"
 #include "Controller/PController.h"
 #include "Engine/Engine.h"
-
+#include "EngineUtils.h"
 // Sets default values
 AUnits::AUnits()
 {	
@@ -70,6 +70,7 @@ void AUnits::Tick(float DeltaTime)
 
 		if (UnitTask != nullptr && UnitTask->HasTask() && UnitTask->GetFirstTask()->GetInstruction() == EUnitInstructions::UI_Move) IsMovementInstructionComplete();
 		if (UnitTask != nullptr && UnitTask->HasTask() && UnitTask->GetFirstTask()->GetInstruction() == EUnitInstructions::UI_Attack) IsAttackInstructionComplete();
+		
 
 		if (UnitTask != nullptr && !UnitTask->HasTask()) AttemptToGetAutoTask();
 	}
@@ -121,6 +122,17 @@ void AUnits::WithinRangeOfAttack(UPrimitiveComponent* OverlappedComp, AActor* Ot
 				}
 			}
 		}
+
+		if (ABuilding* building = Cast<ABuilding>(OtherActor)) {
+			if (building->CanStore && HasHitDropOffBuilding(OtherActor)) {
+				DropResourcesOff();
+				UnitTask->RemoveFirstTask();
+
+				if (UnitTask->HasTask() && UnitTask->GetFirstTask()->GetInstruction() == EUnitInstructions::UI_Gather) {
+					MoveUnitAndHarvest(UnitTask->GetFirstTask()->GetTargetActor(), UnitTask->GetFirstTask()->GetTargetActor()->GetActorLocation());
+				}
+			}
+		}
 	}
 }
 
@@ -131,7 +143,6 @@ void AUnits::OutOfRangeOfAttack(UPrimitiveComponent* OverlappedComp, AActor* Oth
 }
 
 #pragma endregion
-
 
 #pragma region Movement And Actions
 
@@ -369,31 +380,49 @@ void AUnits::HarvestTick() {
 	}
 
 	AResource* resource = Cast<AResource>(HarvestingActor);
+
+	if (resource->IsDepleted) {
+		IsHarvesting = false;
+
+		Debug("Stopped harvesting due to know resource in this resource Actor");
+
+	    
+
+		UnitTask->RemoveFirstTask();
+		AttemptToFindAnotherResourceOfType(resource);
+		
+
+		return;
+	}
+
 	Inventory->AddToResourceCount(resource->RemoveAmountFromCount(AmountHarvested), resource->GetResourceType());
 	//remove amount from the resource.;
 
 	if (Inventory->IsInventoryFull()) {
+		IsHarvesting = false;
 
 		AResource* resource = Cast<AResource>(UnitTask->GetFirstTask()->GetTargetActor());
 		ABuilding* storage = Cast<ABuilding>(FindNearestStorageBuilding());
 
 		UnitTask->RemoveFirstTask();
 
-		if (storage == nullptr) {
-			IsHarvesting = false;
+		if (storage == nullptr) {			
 			Debug("Could not find Storage building");
 			return;
 		}
 
 		UnitTask->CreateAndAddTaskAUTO("auto drop off", this->GetActorLocation(), storage->GetActorLocation(), storage, EUnitInstructions::UI_DropOff);
+		Debug("Dropping Off");
 		UnitTask->CreateAndAddTaskAUTO("auto return and gather", this->GetActorLocation(), resource->GetActorLocation(), resource, EUnitInstructions::UI_Gather, false);
-				
+		Debug("Going to Auto gather");
 		UNavigationSystem::SimpleMoveToActor(this->GetController(), storage);
 	}	
 }
 
 AActor* AUnits::FindNearestStorageBuilding() {
-	if (APController* con = Cast<APController>(this->GetController())) {
+	if(playerController != nullptr) {
+		APController* pCon = Cast<APController>(playerController);
+
 		FVector location = this->GetActorLocation();
 		float distance = -1;
 		bool foundStorage = false;
@@ -401,8 +430,8 @@ AActor* AUnits::FindNearestStorageBuilding() {
 		TArray<ABuilding*> StorageBuildings;
 		ABuilding* ClosestBuilding = nullptr;
 
-		for (int32 i = 0; i < con->OwnedBuildings.Num(); i++) {
-			ABuilding* building = Cast<ABuilding>(con->OwnedBuildings[i]);
+		for (int32 i = 0; i < pCon->OwnedBuildings.Num(); i++) {
+			ABuilding* building = Cast<ABuilding>(pCon->OwnedBuildings[i]);
 			if (building->CanStore) {
 				StorageBuildings.Add(building);
 				foundStorage = true;
@@ -422,13 +451,51 @@ AActor* AUnits::FindNearestStorageBuilding() {
 				distance = newDistance;
 				ClosestBuilding = StorageBuildings[i];
 			}
-		}		
-
+		}
 		return ClosestBuilding;
 	}
 	else {
 		return nullptr;
 	}
+}
+
+bool AUnits::HasHitDropOffBuilding(AActor* actor) {
+	return UnitTask->HasTask() && UnitTask->GetFirstTask()->GetInstruction() == EUnitInstructions::UI_DropOff;
+}
+
+void AUnits::DropResourcesOff() {
+	APController* con = Cast<APController>(playerController);
+	con->AffectResourceCount(Inventory->ResourceType, Inventory->ResourceCount, true);
+
+	Inventory->EmptyInventory();
+}
+
+void AUnits::AttemptToFindAnotherResourceOfType(AActor* res) {
+	AResource* resource = Cast<AResource>(res);
+
+	TArray<AResource*> resourcesFound;
+
+	bool resourceFound;
+
+	for (TActorIterator<AResource> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+	{
+		// Same as with the Object Iterator, access the subclass instance with the * or -> operators.
+		AResource* r = *ActorItr;
+		if (r->ResourceType == resource->ResourceType && !r->IsDepleted) {
+			resourcesFound.Add(r);
+			resourceFound = true;
+		}
+	}
+
+	if (!resourceFound) {
+		Debug("Could not find another resource of this type");
+		return;
+	}
+
+	for (int32 i = 0; i < resourcesFound.Num(); i++) {
+
+	}
+
 }
 
 #pragma endregion
@@ -439,6 +506,14 @@ void AUnits::LookAt(AActor* actor) {
 	FRotator PlayerRot = FRotationMatrix::MakeFromX(this->GetActorLocation() - actor->GetActorLocation()).Rotator();
 	SetActorLocation(this->GetActorLocation());
 	SetActorRotation(PlayerRot);
+}
+
+void AUnits::SetController(AController* con) {
+	playerController = con;
+}
+
+TEnumAsByte<EUnitOwnerships::EUnitOwnerShip> AUnits::GetUnitOwner() {
+	return UnitOwner;
 }
 
 #pragma endregion

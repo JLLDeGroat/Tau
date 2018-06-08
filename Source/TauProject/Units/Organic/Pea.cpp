@@ -35,7 +35,7 @@ APea::APea()
 		Box->bGenerateOverlapEvents = true;
 	}
 
-	this->AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	//this->AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 
 	LineOfSight = 220;

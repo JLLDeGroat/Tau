@@ -55,3 +55,8 @@ void UUnitInventory::SetCurrentResourceType(TEnumAsByte<EResources::All> resourc
 }
 
 #pragma endregion
+
+void UUnitInventory::EmptyInventory() {
+	this->ResourceCount = 0;
+	this->ResourceType = EResources::R_None;
+}

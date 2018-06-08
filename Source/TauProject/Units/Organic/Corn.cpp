@@ -33,7 +33,7 @@ ACorn::ACorn()
 		Box->bGenerateOverlapEvents = true;
 	}
 
-	this->AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	//this->AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 
 	LineOfSight = 190;
@@ -52,9 +52,7 @@ ACorn::ACorn()
 	CanHarvest = true;
 	HarvestRate = 1;
 
-	//inventory
-	Inventory = NewObject<UUnitInventory>();
-	Inventory->MaxResourceCount = 6;
+	
 }
 
 // Called when the game starts or when spawned
@@ -62,19 +60,20 @@ void ACorn::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	//inventory
+	Inventory = NewObject<UUnitInventory>();
+	Inventory->MaxResourceCount = 6;
 }
 
 // Called every frame
 void ACorn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
 // Called to bind functionality to input
 void ACorn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
 

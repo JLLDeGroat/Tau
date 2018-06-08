@@ -18,10 +18,12 @@
 #include "Buildings/Organic/Storage.h"
 
 #include "Units/Units.h"
+#include "Units/UnitStructs.h"
 #include "Units/Organic/Pea.h"
 #include "Units/Organic/Sprout.h"
 
 #include "Engine/Engine.h"
+#include "EngineUtils.h"
 #include "Blueprint/UserWidget.h"
 
 #include "PlayerResource/EResource.h" 
@@ -46,6 +48,14 @@ void APController::BeginPlay() {
 
 	resources->AffectResourceCounter(EResources::R_Lumber, 20, true);
 	resources->AffectResourceCounter(EResources::R_Stone, 20, true);
+
+	//grab initial units and assign them this controller
+	for (TActorIterator<AUnits> ActorItr(GetWorld()); ActorItr; ++ActorItr)
+	{
+		// Same as with the Object Iterator, access the subclass instance with the * or -> operators.
+		AUnits* unit = *ActorItr;
+		if (unit->GetUnitOwner() == EUnitOwnerships::UO_Player) unit->SetController(this);
+	}
 }
 
 

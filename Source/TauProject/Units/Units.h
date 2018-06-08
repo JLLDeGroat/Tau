@@ -41,8 +41,6 @@ public:
 
 	void AttemptToGetAutoTask();
 	
-	UPROPERTY(EditAnywhere, Category = GlobalUnit)
-		TEnumAsByte<EUnitOwnerships::EUnitOwnerShip> UnitOwner;
 
 	UPROPERTY()
 		UUnitTasks* UnitTask;
@@ -87,7 +85,10 @@ public:
 
 	void HarvestTick();
 	AActor* FindNearestStorageBuilding();
+	bool HasHitDropOffBuilding(AActor* actor);
+	void DropResourcesOff();
 
+	void AttemptToFindAnotherResourceOfType(AActor* res);
 	#pragma endregion
 
 	#pragma region Combat 
@@ -158,6 +159,16 @@ public:
 
 	#pragma region Util
 	void LookAt(AActor* actor);
+
+	UPROPERTY()
+		AController* playerController;
+
+	void SetController(AController* con);
+
+	UPROPERTY(EditAnywhere, Category = GlobalUnit)
+		TEnumAsByte<EUnitOwnerships::EUnitOwnerShip> UnitOwner;
+
+	TEnumAsByte<EUnitOwnerships::EUnitOwnerShip> GetUnitOwner();
 	#pragma endregion
 
 	#pragma region overlaps

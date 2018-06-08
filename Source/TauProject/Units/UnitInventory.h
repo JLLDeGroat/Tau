@@ -46,4 +46,6 @@ public:
 	float GetMaxResourceCount();
 	TEnumAsByte<EResources::All> GetCurrentResourceType();
 	#pragma endregion
+
+	void EmptyInventory();
 };
