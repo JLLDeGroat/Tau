@@ -37,8 +37,7 @@ TEnumAsByte<EResources::All> AResource::GetResourceType() {
 }
 
 float AResource::SetInitialResources(TEnumAsByte<EResources::All> resource) {
-	//return FMath::RandRange(100, 501);
-	return 2;
+	return FMath::RandRange(100, 501);
 }
 
 #pragma endregion

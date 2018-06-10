@@ -21,6 +21,7 @@ namespace EWidgets
 	enum EWidgetToShow
 	{
 		W_Selection					UMETA(DisplayName = "Selection"),
+		W_Barracks					UMETA(DisplayName = "Barracks"),
 		W_None						UMETA(DisplayName = "None")
 	};
 }

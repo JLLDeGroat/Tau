@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Buildings/BuildingStructs.h"
 #include "PlayerResource/ResourceCost.h"
+#include "Units/Units.h"
+#include "Units/UnitStructs.h" 
 #include "Building.generated.h"
-
 UCLASS()
 class TAUPROJECT_API ABuilding : public AActor
 {
@@ -25,7 +25,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	
-
+	UPROPERTY(EditAnywhere, category = BuildingGlobal)
+		TEnumAsByte<EAvailableBuildings::EAvailableBuildings> BuildingType;
 
 	UPROPERTY(EditAnywhere, category = BuildingGlobal)
 		FString BuildingName;
@@ -94,8 +95,20 @@ public:
 	void SetBuildingState(TEnumAsByte<EBuildStates::EBuildingStates> state);
 	TEnumAsByte<EBuildStates::EBuildingStates> GetCurrentState();
 
+	TEnumAsByte<EAvailableBuildings::EAvailableBuildings> GetBuildingType();
+
 	#pragma endregion
 	
+	#pragma region Creating And Spawning Units
+
+	UPROPERTY()
+		TArray<UObject*> SpawnList;
+
+	void AddUnitToSpawnList(TEnumAsByte<EUnitList::All> unitType, AController* control);
+	
+
+	void SpawnUnitTick(float DeltaTime);
+	#pragma endregion
 
 
 	void Debug(FString error);

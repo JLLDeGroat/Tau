@@ -4,7 +4,12 @@
 #include "Components/StaticMeshComponent.h"
 #include "PlayerResource/ResourceCost.h"
 #include "Buildings/BuildingStructs.h"
+#include "Units/Units.h"
+#include "Units/UnitStructs.h"
+#include "Buildings/BuildingSpawn.h"
 #include "Engine/Engine.h"
+#include "Engine/StaticMesh.h"
+#include "Controller/PController.h"
 
 // Sets default values
 ABuilding::ABuilding()
@@ -27,6 +32,8 @@ void ABuilding::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	if (IsPlaced) ChangeStateOnHealthChange();
+
+	if (SpawnList.Num() > 0) SpawnUnitTick(DeltaTime);
 }
 
 #pragma region build costs
@@ -97,6 +104,10 @@ TEnumAsByte<EBuildStates::EBuildingStates> ABuilding::GetCurrentState() {
 	return CurrentBuildingState;
 }
 
+TEnumAsByte<EAvailableBuildings::EAvailableBuildings> ABuilding::GetBuildingType() {
+	return BuildingType;
+}
+
 #pragma endregion
 
 #pragma region Ownership
@@ -150,6 +161,49 @@ void ABuilding::ChangeStateOnHealthChange() {
 		}
 		if (healthAsPercent < 30) {
 			SetBuildingState(EBuildStates::BS_Damaged3);
+		}
+	}
+}
+
+#pragma endregion
+
+#pragma region UnitSpawning 
+
+void ABuilding::AddUnitToSpawnList(TEnumAsByte<EUnitList::All> unit, AController* control) {
+	AUnits* unitClass = NewObject<AUnits>();
+	unitClass = unitClass->GetUnitClassOfType(unit);
+
+	APController* playerCon = Cast<APController>(control);
+
+	if (!playerCon->resources->CanAffordResourceList(unitClass->GetBuildCost())) return; // could not afford the unit
+
+	playerCon->resources->AffectResouceListOnCounter(unitClass->GetBuildCost(), false);
+
+	UBuildingSpawn* SpawnItem = NewObject<UBuildingSpawn>();
+
+	SpawnItem->SetupSpawnitem(unitClass, unitClass->GetSpawnTime(), control);
+
+	SpawnList.Add(SpawnItem);
+}
+
+void ABuilding::SpawnUnitTick(float DeltaTime) {
+	if (this->SpawnList.Num() > 0) {
+		UBuildingSpawn* spawner = Cast<UBuildingSpawn>(SpawnList[0]);
+
+		Debug("Spawning: " + spawner->GetUnit()->GetName() + " time: " + FString::SanitizeFloat(spawner->GetCurrentSpawnDeltaTime()) + " / " + FString::SanitizeFloat(spawner->GetSpawnCompleteDeltaTime()));
+
+		spawner->UpdateSpawnList(DeltaTime);
+
+		if (spawner->IsSpawncomplete()) {
+			FVector spawnLocation = (this->GetActorForwardVector() * 150) + this->GetActorLocation() + (this->GetActorLocation().Z + 50);
+			// (GetActorForwardVector() * 100) 100 being the amount forward it spawns
+
+			auto spawnedinUnit = spawner->unit->SpawnUnitOfType(spawner->GetUnit()->ThisUnitType, spawnLocation, this->GetActorRotation(), GetWorld());
+					
+			spawnedinUnit->SetController(spawner->GetUnitController());
+			spawnedinUnit->SetUnitOwner(EUnitOwnerships::UO_Player);
+
+			SpawnList.Remove(spawner);
 		}
 	}
 }

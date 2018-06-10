@@ -4,7 +4,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "ConstructorHelpers.h"
 #include "Engine/Engine.h"
-
+#include "Engine/StaticMesh.h"
 // Sets default values
 AIron::AIron()
 {

@@ -7,8 +7,8 @@
 #include "Components/SphereComponent.h"
 #include "Units/UnitTasks.h"
 #include "Units/UnitInventory.h"
+#include "PlayerResource/ResourceCost.h"
 #include "Units.generated.h"
-
 UCLASS()
 class TAUPROJECT_API AUnits : public ACharacter
 {
@@ -45,6 +45,19 @@ public:
 	UPROPERTY()
 		UUnitTasks* UnitTask;
 		
+	#pragma endregion
+
+	#pragma region Build Costs
+
+	UPROPERTY()
+		TArray<UResourceCost*> BuildCost;
+
+	UPROPERTY()
+		float SpawnTime;
+
+	TArray<UResourceCost*> GetBuildCost();
+
+	float GetSpawnTime();
 	#pragma endregion
 
 	#pragma region Base
@@ -161,6 +174,9 @@ public:
 	void LookAt(AActor* actor);
 
 	UPROPERTY()
+		TEnumAsByte<EUnitList::All> ThisUnitType;
+
+	UPROPERTY()
 		AController* playerController;
 
 	void SetController(AController* con);
@@ -169,6 +185,10 @@ public:
 		TEnumAsByte<EUnitOwnerships::EUnitOwnerShip> UnitOwner;
 
 	TEnumAsByte<EUnitOwnerships::EUnitOwnerShip> GetUnitOwner();
+	void AUnits::SetUnitOwner(TEnumAsByte<EUnitOwnerships::EUnitOwnerShip> newowner);
+
+	AUnits* GetUnitClassOfType(TEnumAsByte<EUnitList::All> unit);
+	AUnits* AUnits::SpawnUnitOfType(TEnumAsByte<EUnitList::All> unit, FVector spawnLocation, FRotator rotation, UWorld* ThisWorld);
 	#pragma endregion
 
 	#pragma region overlaps

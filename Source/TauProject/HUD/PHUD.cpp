@@ -13,14 +13,14 @@ void APHUD::DrawHUD()
 	Super::DrawHUD();
 	if (bIsSelecting) {
 		SelectedUnits.Empty();
-		//SelectedBuildings.Empty();
+		SelectedBuildings.Empty();
 
 
 		CurrentPoint = GetMousePosition2D();
 		DrawRect(FLinearColor(0, 0, 1, .15), InitialPoint.X, InitialPoint.Y,
 			CurrentPoint.X - InitialPoint.X, CurrentPoint.Y - InitialPoint.Y);
 		GetActorsRootInSelectionRectangle<AUnits>(InitialPoint, CurrentPoint, SelectedUnits, false, false);
-		//GetActorsInSelectionRectangle<ABuilding>(InitialPoint, CurrentPoint, SelectedBuildings, false, false);
+		GetActorsInSelectionRectangle<ABuilding>(InitialPoint, CurrentPoint, SelectedBuildings, false, false);
 		//GetActorsInSelectionRectangle<AResources>(InitialPoint, CurrentPoint, SelectedResources, false, false);
 	}
 }
@@ -70,6 +70,18 @@ void APHUD::InitializeWidgets() {
 		Debug("Failed To Get Selection Widget");
 	}
 
+	FStringClassReference BarracksWidgetClassRef(TEXT("/Game/Blueprints/Widgets/Barracks.Barracks_C"));
+	if (UClass* BarracksWidgetClass = BarracksWidgetClassRef.TryLoadClass<UUserWidget>())
+	{
+		//UUserWidget* MyWidget = CreateWidget<UUserWidget>(GetWorld(), MyWidgetClass);
+		BarracksWidget = CreateWidget<UUserWidget>(GetWorld(), BarracksWidgetClass);
+		BarracksWidget->AddToViewport();
+		HideWidget(BarracksWidget);
+		// Do stuff with MyWidget
+	}
+	else {
+		Debug("Failed To Get Barracks Widget");
+	}
 }
 
 void APHUD::ShowWidget(TEnumAsByte<EWidgets::EWidgetToShow> widget) {
@@ -92,13 +104,17 @@ void APHUD::HideWidget(TEnumAsByte<EWidgets::EWidgetToShow> widget) {
 
 void APHUD::HideAllWidgets() {
 	UUserWidget* swidget = GetWidget(EWidgets::EWidgetToShow::W_Selection);
+	UUserWidget* bwidget = GetWidget(EWidgets::EWidgetToShow::W_Barracks);
 	HideWidget(swidget);
+	HideWidget(bwidget);
 }
 
 UUserWidget* APHUD::GetWidget(TEnumAsByte<EWidgets::EWidgetToShow> widget) {
 	switch (widget) {
 		case EWidgets::EWidgetToShow::W_Selection:
 			return SelectionWidget;
+		case EWidgets::EWidgetToShow::W_Barracks:
+			return BarracksWidget;
 		case EWidgets::EWidgetToShow::W_None:
 			return nullptr;
 	}

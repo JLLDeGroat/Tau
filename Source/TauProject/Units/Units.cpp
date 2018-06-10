@@ -9,6 +9,13 @@
 #include "Controller/PController.h"
 #include "Engine/Engine.h"
 #include "EngineUtils.h"
+
+#include "PlayerResource/ResourceCost.h"
+
+#include "Units/Organic/Corn.h"
+#include "Units/Organic/Pea.h"
+#include "Units/Organic/Sprout.h"
+
 // Sets default values
 AUnits::AUnits()
 {	
@@ -36,7 +43,6 @@ AUnits::AUnits()
 
 	LineOfSight = 220;
 	AttackRange = 170;
-
 }
 
 // Called when the game starts or when spawned
@@ -401,7 +407,7 @@ void AUnits::HarvestTick() {
 	if (Inventory->IsInventoryFull()) {
 		IsHarvesting = false;
 
-		AResource* resource = Cast<AResource>(UnitTask->GetFirstTask()->GetTargetActor());
+		AResource* res = Cast<AResource>(UnitTask->GetFirstTask()->GetTargetActor());
 		ABuilding* storage = Cast<ABuilding>(FindNearestStorageBuilding());
 
 		UnitTask->RemoveFirstTask();
@@ -413,7 +419,7 @@ void AUnits::HarvestTick() {
 
 		UnitTask->CreateAndAddTaskAUTO("auto drop off", this->GetActorLocation(), storage->GetActorLocation(), storage, EUnitInstructions::UI_DropOff);
 		Debug("Dropping Off");
-		UnitTask->CreateAndAddTaskAUTO("auto return and gather", this->GetActorLocation(), resource->GetActorLocation(), resource, EUnitInstructions::UI_Gather, false);
+		UnitTask->CreateAndAddTaskAUTO("auto return and gather", this->GetActorLocation(), res->GetActorLocation(), res, EUnitInstructions::UI_Gather, false);
 		Debug("Going to Auto gather");
 		UNavigationSystem::SimpleMoveToActor(this->GetController(), storage);
 	}	
@@ -505,7 +511,20 @@ void AUnits::AttemptToFindAnotherResourceOfType(AActor* res) {
 
 	if (distancetoResource != -1) {
 		UnitTask->CreateAndAddTaskAUTO("Auto harvest new resource", this->GetActorLocation(), closestResource->GetActorLocation(), closestResource, EUnitInstructions::UI_Gather);
+		UNavigationSystem::SimpleMoveToActor(this->GetController(), closestResource);
 	}
+}
+
+#pragma endregion
+
+#pragma region Build Costs and Upgrade
+
+TArray<UResourceCost*> AUnits::GetBuildCost() {
+	return BuildCost;
+}
+
+float AUnits::GetSpawnTime() {
+	return SpawnTime;
 }
 
 #pragma endregion
@@ -524,6 +543,59 @@ void AUnits::SetController(AController* con) {
 
 TEnumAsByte<EUnitOwnerships::EUnitOwnerShip> AUnits::GetUnitOwner() {
 	return UnitOwner;
+}
+
+void AUnits::SetUnitOwner(TEnumAsByte<EUnitOwnerships::EUnitOwnerShip> newowner) {
+	UnitOwner = newowner;
+}
+
+AUnits* AUnits::GetUnitClassOfType(TEnumAsByte<EUnitList::All> unit) {
+	switch (unit) {
+
+	case EUnitList::UL_None:
+		return nullptr;
+
+
+	case EUnitList::UL_Corn:
+		return NewObject<ACorn>();
+
+
+	case EUnitList::UL_Pea:
+		return NewObject<APea>();
+
+
+	case EUnitList::UL_Sprout:
+		return NewObject<ASprout>();
+	}
+
+	return nullptr;
+}
+
+AUnits* AUnits::SpawnUnitOfType(TEnumAsByte<EUnitList::All> unit, FVector spawnLocation, FRotator rotation, UWorld* ThisWorld) {
+	FActorSpawnParameters SpawnInfo; // generate spawning rules
+	SpawnInfo.bNoFail = false;
+	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+	
+
+	switch (unit) {
+
+	case EUnitList::UL_None:
+		return nullptr;
+
+
+	case EUnitList::UL_Corn:		
+		return 
+			ThisWorld->SpawnActor<ACorn>(ACorn::StaticClass(), spawnLocation, rotation, SpawnInfo);
+
+	case EUnitList::UL_Pea:
+		return
+			ThisWorld->SpawnActor<APea>(APea::StaticClass(), spawnLocation, rotation, SpawnInfo);
+
+	case EUnitList::UL_Sprout:
+		return
+			ThisWorld->SpawnActor<ASprout>(ASprout::StaticClass(), spawnLocation, rotation, SpawnInfo);
+	}
+	return nullptr;
 }
 
 #pragma endregion

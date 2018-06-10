@@ -63,3 +63,14 @@ namespace EUnitInstructions
 
 	};
 }
+
+UENUM(BlueprintType)
+namespace EUnitList
+{
+	enum All {
+		UL_None						UMETA(DisplayName = "None"),
+		UL_Corn						UMETA(DisplayName = "Corn"),
+		UL_Pea						UMETA(DisplayName = "Pea"),
+		UL_Sprout					UMETA(DisplayName = "Sprout")
+	};
+}

@@ -48,6 +48,8 @@ void APController::BeginPlay() {
 
 	resources->AffectResourceCounter(EResources::R_Lumber, 20, true);
 	resources->AffectResourceCounter(EResources::R_Stone, 20, true);
+	resources->AffectResourceCounter(EResources::R_Bread, 20, true);
+	resources->AffectResourceCounter(EResources::R_Iron, 20, true);
 
 	//grab initial units and assign them this controller
 	for (TActorIterator<AUnits> ActorItr(GetWorld()); ActorItr; ++ActorItr)
@@ -79,7 +81,18 @@ void APController::SetWidgetToShow() {
 		}
 		if (!foundBuilder) return; // set widget to army unit
 	}
-	else  
+	else if (SelectedBuildings.Num() > 0) {
+		ABuilding* firstBuilding = SelectedBuildings[0];
+
+		Hudptr->HideAllWidgets();
+
+		switch (firstBuilding->GetBuildingType()) {
+
+		case EAvailableBuildings::B_Barracks:
+			Hudptr->ShowWidget(EWidgets::W_Barracks);
+		}
+	}
+	else
 		Hudptr->HideAllWidgets();
 }
 
@@ -107,12 +120,15 @@ void APController::LeftMouseClick() {
 	Hudptr->InitialPoint = Hudptr->GetMousePosition2D();
 	Hudptr->bIsSelecting = true;
 
-	if (IsPlacingBuilding) PlaceBuilding();
+	if (IsPlacingBuilding) {
+		PlaceBuilding();
+	}
 }
 
 void APController::LeftMouseClickRelease() {
 	Hudptr->bIsSelecting = false;
 	SelectedUnits = Hudptr->SelectedUnits;
+	SelectedBuildings = Hudptr->SelectedBuildings;
 
 	SetWidgetToShow();
 }
@@ -155,6 +171,11 @@ void APController::AffectResourceCount(TEnumAsByte<EResources::All> resource, fl
 #pragma region Building Management
 
 void APController::BeginPlaceBuilding(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> EBuilding) {
+
+	if (BuildingToPlace != nullptr) {
+		BuildingToPlace->Destroy();
+		BuildingToPlace = nullptr;
+	}
 	
 	BuildingToPlace = FindOrSpawnBuilding(EBuilding, true); // find
 
@@ -244,6 +265,15 @@ void APController::RemoveFromOwnedBuildings(AActor* actor) {
 			return;
 		}
 	}
+}
+
+#pragma endregion
+
+#pragma region Building Spawn Management
+
+void APController::AddUnitToBuildingSpawnList(TEnumAsByte<EUnitList::All> unit) {
+	SelectedBuildings[0]->AddUnitToSpawnList(unit, this);
+	Debug("added to list 2");
 }
 
 #pragma endregion

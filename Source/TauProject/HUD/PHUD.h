@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 #include "CoreMinimal.h"
 #include "GameFramework/HUD.h"
 #include "Units/Units.h"
+#include "Buildings/Building.h"
 #include "Controller/ControllerStructs.h"
 #include "PHUD.generated.h"
 /**
@@ -28,8 +28,10 @@ public:
 	bool bIsSelecting;
 
 	//selection
+	UPROPERTY()
     TArray <AUnits*> SelectedUnits;
-	//TArray <class ABuilding*> SelectedBuildings;
+	UPROPERTY()
+	TArray <ABuilding*> SelectedBuildings;
 	//TArray <AResources*> SelectedResources;
 	//class ABuilding* SelectedBuilding;
 
@@ -38,15 +40,22 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD", meta = (BlueprintProtected = "true"))
 		TSubclassOf<class UUserWidget> SelectionHudClass;
-
 	UPROPERTY()
 		class UUserWidget* SelectionWidget;
 
-	UPROPERTY()
-		TSubclassOf<class UUserWidget> ResourceHudClass;
 
 	UPROPERTY()
+		TSubclassOf<class UUserWidget> ResourceHudClass;
+	UPROPERTY()
 		class UUserWidget* ResourceWidget;
+
+
+
+	UPROPERTY()
+		TSubclassOf<class UUserWidget> BarracksHudClass;
+	UPROPERTY()
+		class UUserWidget* BarracksWidget;
+
 
 
 	void InitializeWidgets();

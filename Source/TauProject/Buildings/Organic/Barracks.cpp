@@ -70,6 +70,8 @@ ABarracks::ABarracks()
 
 	IsPlaced = false;
 
+	BuildingType = EAvailableBuildings::B_Barracks;
+
 	PrimaryActorTick.bCanEverTick = true;
 	SetActorTickInterval(1);
 }

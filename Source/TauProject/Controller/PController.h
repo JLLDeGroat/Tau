@@ -37,7 +37,10 @@ public:
 	void RightMouseClickRelease();
 
 	UPROPERTY()
-	TArray<AUnits*> SelectedUnits;
+		TArray<AUnits*> SelectedUnits;
+
+	UPROPERTY()
+		TArray<ABuilding*> SelectedBuildings;
 	
 	#pragma region Widgets	
 	UPROPERTY(EditAnywhere)
@@ -83,6 +86,13 @@ public:
 
 	void AddToOwnedBuildings(AActor* actor);
 	void RemoveFromOwnedBuildings(AActor* actor);
+
+	#pragma endregion
+
+	#pragma region Building Spawn Management
+
+	UFUNCTION(BlueprintCallable)
+	void AddUnitToBuildingSpawnList(TEnumAsByte<EUnitList::All> unit);
 
 	#pragma endregion
 

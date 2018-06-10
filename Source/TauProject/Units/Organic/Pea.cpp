@@ -6,6 +6,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "ConstructorHelpers.h"
 #include "Engine/Engine.h"
+#include "Engine/StaticMesh.h"
+#include "PlayerResource/ResourceCost.h"
 
 // Sets default values
 APea::APea()
@@ -35,13 +37,15 @@ APea::APea()
 		Box->bGenerateOverlapEvents = true;
 	}
 
-	//this->AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	this->AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 
 	LineOfSight = 220;
 	AttackRange = 140;
 
 	//stats
+	ThisUnitType = EUnitList::UL_Pea;
+
 
 	CriticalChance = 1;
 	CriticalMultiplier = 1.2;
@@ -49,6 +53,21 @@ APea::APea()
 	Health = 100;
 	MaxHealth = 100;
 	Attack = 7;
+
+	SpawnTime = 7;
+
+
+	UResourceCost* c1 = NewObject<UResourceCost>();
+	UResourceCost* c2 = NewObject<UResourceCost>();
+
+	c1->res = EResources::R_Bread;
+	c1->Amount = 1;
+	c2->res = EResources::R_Iron;
+	c2->Amount = 1;
+
+	BuildCost.Add(c1);
+	BuildCost.Add(c2);
+
 }
 
 // Called when the game starts or when spawned

@@ -3,9 +3,9 @@
 #include "CoreMinimal.h"
 #include "Units/UnitStructs.h"
 #include "PlayerResource/EResource.h"
+#include "Engine/StaticMesh.h"
 #include "GameFramework/Actor.h"
 #include "Resource.generated.h"
-
 
 UCLASS()
 class TAUPROJECT_API AResource : public AActor
