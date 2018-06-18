@@ -67,13 +67,18 @@ AStorage::AStorage()
 	PrimaryActorTick.bCanEverTick = true;
 	SetActorTickInterval(1);
 
-	SetBuildCosts();
 }
 
 // Called when the game starts or when spawned
 void AStorage::BeginPlay()
 {
 	Super::BeginPlay();	
+
+	TArray<UResourceCost*> costList;
+	costList.Add(NewObject<UResourceCost>()->Setup(EResources::R_Lumber, 4));
+	costList.Add(NewObject<UResourceCost>()->Setup(EResources::R_Stone, 2));
+
+	SetBuildCosts(costList);
 }
 
 // Called every frame
@@ -103,24 +108,6 @@ void AStorage::EndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActo
 	if (!IsPlaced && OtherActor != this) {
 		OverlappingComponents.Remove(OtherComp);
 	}
-}
-
-#pragma endregion
-
-#pragma region Build Costs
-
-void AStorage::SetBuildCosts() {
-	UResourceCost* cost1 = NewObject<UResourceCost>();
-	UResourceCost* cost2 = NewObject<UResourceCost>();
-
-	cost1->res = EResources::R_Lumber;
-	cost1->Amount = 4;
-
-	cost2->res = EResources::R_Stone;
-	cost2->Amount = 2;
-
-	BuildCost.Add(cost1);
-	BuildCost.Add(cost2);
 }
 
 #pragma endregion

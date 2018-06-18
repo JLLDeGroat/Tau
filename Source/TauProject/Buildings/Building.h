@@ -24,6 +24,27 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UPROPERTY()
+		UStaticMeshComponent* Box;
+	UPROPERTY()
+		UStaticMesh* BuildingMesh;
+	UPROPERTY()
+		UStaticMesh* FailedBuildingMesh;
+	UPROPERTY()
+		UStaticMesh* Stage1Construction;
+	UPROPERTY()
+		UStaticMesh* Stage2Construction;
+	UPROPERTY()
+		UStaticMesh* Stage3Construction;
+	UPROPERTY()
+		UStaticMesh* Stage1Damage;
+	UPROPERTY()
+		UStaticMesh* Stage2Damage;
+	UPROPERTY()
+		UStaticMesh* Stage3Damage;
+
+	UPROPERTY()
+		AController* control;
 	
 	UPROPERTY(EditAnywhere, category = BuildingGlobal)
 		TEnumAsByte<EAvailableBuildings::EAvailableBuildings> BuildingType;
@@ -45,6 +66,8 @@ public:
 		TArray<UResourceCost*> BuildCost;
 
 	TArray<UResourceCost*> GetBuildCost();
+
+	void SetBuildCosts(TArray<UResourceCost*> costList);
 	#pragma endregion
 
 	#pragma region Spawning
@@ -60,12 +83,20 @@ public:
 	UPROPERTY()
 		TArray<UPrimitiveComponent*> OverlappingComponents;
 
+
+
 	void SetBuildingAsPlaced();
 	void CheckIsValidPlacement();
 	bool GetIsValidPlacement();
 	void SetIsValidPlacement(bool valid);
 
 	void PlaceBuilding();
+
+	void SetPlayerController(AController* controller);
+	AController* GetPlayerController();
+
+
+	void SetIsConstructed(bool val);
 	#pragma endregion
 
 	#pragma region Health Changes
@@ -110,6 +141,27 @@ public:
 	void SpawnUnitTick(float DeltaTime);
 	#pragma endregion
 
+	#pragma region Converting Resources
+	UPROPERTY()
+	UObject* ResourceConverter;
+
+	void SetResourceConversions(TArray<UResourceCost*> Cost, TArray<UResourceCost*> Reward, float Rate);
+
+	UPROPERTY()
+		bool IsConverter;
+
+	void SetIsConverter(bool converter);
+	bool GetIsConverter();
+
+	void UpdateResourceConvert(float DeltaTime);
+
+	#pragma endregion
+
+	#pragma region Utils
+
+	ABuilding* FindOrSpawnBuilding(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> building, bool Find, UWorld* world);
+
+	#pragma endregion
 
 	void Debug(FString error);
 };

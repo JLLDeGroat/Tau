@@ -47,6 +47,9 @@ float UAll::GetResourceCount(TEnumAsByte<EResources::All> resource) {
 	case EResources::R_Steel:
 		return Steel;
 
+	case EResources::R_Planks:
+		return Planks;
+
 	//elite
 
 	case EResources::R_Peatanium:
@@ -132,6 +135,10 @@ void UAll::AffectResourceCounter(TEnumAsByte<EResources::All> resource, float am
 		else Steel -= amount;
 		break;
 
+	case EResources::R_Planks:
+		if (Add) Planks += amount;
+		else Planks -= amount;
+		return;
 
 		//elite
 

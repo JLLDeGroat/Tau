@@ -350,6 +350,7 @@ void AUnits::BuildBuilding() {
 	building->AddToHealth(this->BuildRate);
 	if (building->Health >= building->MaxHealth) { 
 		building->SetHealthToMax();
+		building->SetIsConstructed(true);
 		BuildingFinished();
 	}
 }
@@ -481,7 +482,7 @@ void AUnits::AttemptToFindAnotherResourceOfType(AActor* res) {
 
 	TArray<AResource*> resourcesFound;
 
-	bool resourceFound;
+	bool resourceFound = false;
 	float distancetoResource = -1;
 
 	AResource* closestResource = nullptr;

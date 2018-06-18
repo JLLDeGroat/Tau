@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Building.h"
+#include "GameFramework/Actor.h"
 #include "Components/StaticMeshComponent.h"
 #include "PlayerResource/ResourceCost.h"
 #include "Buildings/BuildingStructs.h"
@@ -10,20 +11,32 @@
 #include "Engine/Engine.h"
 #include "Engine/StaticMesh.h"
 #include "Controller/PController.h"
+#include "Buildings/Converter.h"
+
+
+#include "Organic/Barracks.h"
+#include "Organic/Storage.h"
+#include "Organic/SawMill.h"
+#include "Organic/CopperForge.h"
+#include "Organic/IronForge.h"
+#include "Organic/OreRefinery.h"
+#include "Organic/TownCenter.h"
+#include "Organic/SteelForge.h"
+
+
 
 // Sets default values
 ABuilding::ABuilding()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	ResourceConverter = NewObject<UConverter>();
 }
 
 // Called when the game starts or when spawned
 void ABuilding::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
 
 // Called every frame
@@ -31,15 +44,26 @@ void ABuilding::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (IsPlaced) ChangeStateOnHealthChange();
+	if (IsPlaced) {
+		ChangeStateOnHealthChange();
 
+		if (IsConverter && IsConstructed) {
+			UpdateResourceConvert(DeltaTime);
+		}
+	}
 	if (SpawnList.Num() > 0) SpawnUnitTick(DeltaTime);
+
+	
 }
 
 #pragma region build costs
 
 TArray<UResourceCost*> ABuilding::GetBuildCost() {
 	return BuildCost;
+}
+
+void ABuilding::SetBuildCosts(TArray<UResourceCost*> costList) {
+	BuildCost = costList;
 }
 #pragma endregion
 
@@ -90,6 +114,18 @@ void ABuilding::PlaceBuilding() {
 
 void ABuilding::SetBuildingAsPlaced() {
 	IsPlaced = true;
+}
+
+void ABuilding::SetPlayerController(AController* controller) {
+	control = controller;
+}
+AController* ABuilding::GetPlayerController() {
+	return control;
+}
+
+void ABuilding::SetIsConstructed(bool val) {
+	this->IsConstructed = val;
+	this->SetBuildingState(EBuildStates::BS_Complete);
 }
 
 #pragma endregion
@@ -169,11 +205,11 @@ void ABuilding::ChangeStateOnHealthChange() {
 
 #pragma region UnitSpawning 
 
-void ABuilding::AddUnitToSpawnList(TEnumAsByte<EUnitList::All> unit, AController* control) {
+void ABuilding::AddUnitToSpawnList(TEnumAsByte<EUnitList::All> unit, AController* controller) {
 	AUnits* unitClass = NewObject<AUnits>();
 	unitClass = unitClass->GetUnitClassOfType(unit);
 
-	APController* playerCon = Cast<APController>(control);
+	APController* playerCon = Cast<APController>(controller);
 
 	if (!playerCon->resources->CanAffordResourceList(unitClass->GetBuildCost())) return; // could not afford the unit
 
@@ -181,7 +217,7 @@ void ABuilding::AddUnitToSpawnList(TEnumAsByte<EUnitList::All> unit, AController
 
 	UBuildingSpawn* SpawnItem = NewObject<UBuildingSpawn>();
 
-	SpawnItem->SetupSpawnitem(unitClass, unitClass->GetSpawnTime(), control);
+	SpawnItem->SetupSpawnitem(unitClass, unitClass->GetSpawnTime(), controller);
 
 	SpawnList.Add(SpawnItem);
 }
@@ -206,6 +242,92 @@ void ABuilding::SpawnUnitTick(float DeltaTime) {
 			SpawnList.Remove(spawner);
 		}
 	}
+}
+
+#pragma endregion
+
+#pragma region Resource Converting
+
+void ABuilding::SetResourceConversions(TArray<UResourceCost*> Cost, TArray<UResourceCost*> Reward, float Rate) {
+	UConverter* cc = Cast<UConverter>(ResourceConverter);
+
+	for (int32 i = 0; i < Cost.Num(); i++) {
+		cc->SetConverterFromItem(Cost[i]);
+	}
+
+	for (int32 i = 0; i < Reward.Num(); i++) {
+		cc->SetConverterToItem(Reward[i]);
+	}
+
+	cc->SetConversionRate(Rate);
+}
+
+void ABuilding::SetIsConverter(bool converter) {
+	IsConverter = converter;
+}
+bool ABuilding::GetIsConverter() {
+	return this->IsConverter;
+}
+
+void ABuilding::UpdateResourceConvert(float DeltaTime) {	
+	UConverter* cc = Cast<UConverter>(ResourceConverter);
+	APController* pCon = Cast<APController>(control);
+
+
+	if (cc->CurrentlyConverting) {
+		cc->UpdateConvert(DeltaTime);
+
+		Debug(FString::SanitizeFloat(cc->CurrentConversion) + " out of " + FString::SanitizeFloat(cc->ConversionRate));
+
+		if (cc->GetConversionComplete()) {
+			cc->CompletedConversion();
+			
+			pCon->resources->AffectResouceListOnCounter(cc->GetConverterToItem(), true);
+			pCon->resources->AffectResouceListOnCounter(cc->GetConverterFromItem(), false);
+
+
+			cc->SetConversionComplete(false);
+			cc->SetCurrentlyConverting(false);
+		}
+	}
+	else {
+		if (pCon->resources->CanAffordResourceList(cc->GetConverterFromItem())) {
+			cc->SetCurrentlyConverting(true);			
+		}
+		else {
+			Debug("Not Enough Resource To Convert from this building " + this->GetName());
+		}
+	}
+	
+}
+
+#pragma endregion
+
+#pragma region Utils
+
+ABuilding* ABuilding::FindOrSpawnBuilding(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> building, bool Find, UWorld* world) {
+
+	switch (building) {
+
+	case EAvailableBuildings::EAvailableBuildings::B_Barracks:
+		if (Find) return NewObject<ABarracks>();
+		else return world->SpawnActor<ABarracks>();
+		break;
+
+	case EAvailableBuildings::EAvailableBuildings::B_Storage:
+		if (Find) return NewObject<AStorage>();
+		else return world->SpawnActor<AStorage>();
+
+	case EAvailableBuildings::EAvailableBuildings::B_SawMill:
+		if (Find) return NewObject<ASawMill>();
+		else return world->SpawnActor<ASawMill>();
+
+
+	case EAvailableBuildings::EAvailableBuildings::B_None:
+		return nullptr;
+	}
+	return nullptr;
+
 }
 
 #pragma endregion

@@ -24,16 +24,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	UStaticMeshComponent* Box;
-	UStaticMesh* BuildingMesh;
-	UStaticMesh* FailedBuildingMesh;
-	UStaticMesh* Stage1Construction;
-	UStaticMesh* Stage2Construction;
-	UStaticMesh* Stage3Construction;
-	UStaticMesh* Stage1Damage;
-	UStaticMesh* Stage2Damage;
-	UStaticMesh* Stage3Damage;
-
+	
 	UFUNCTION()
 		void StartOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 

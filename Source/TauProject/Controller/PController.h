@@ -76,7 +76,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void BeginPlaceBuilding(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> EBuilding);
 
-	ABuilding* FindOrSpawnBuilding(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> EBuilding, bool Find);	
+	//ABuilding* FindOrSpawnBuilding(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> EBuilding, bool Find);	
 
 	bool CanBuyBuilding(ABuilding* building);
 

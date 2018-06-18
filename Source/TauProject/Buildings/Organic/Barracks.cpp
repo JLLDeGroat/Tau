@@ -80,6 +80,7 @@ ABarracks::ABarracks()
 void ABarracks::BeginPlay()
 {
 	Super::BeginPlay();	
+
 }
 
 // Called every frame

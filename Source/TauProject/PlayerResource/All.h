@@ -50,7 +50,8 @@ public:
 		float Alcohol;
 	UPROPERTY()
 		float Steel;
-
+	UPROPERTY()
+		float Planks;
 	
 	#pragma endregion
 

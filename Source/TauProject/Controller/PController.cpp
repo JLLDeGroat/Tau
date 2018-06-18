@@ -16,6 +16,7 @@
 #include "Buildings/Building.h"
 #include "Buildings/Organic/Barracks.h"
 #include "Buildings/Organic/Storage.h"
+#include "Buildings/Organic/SawMill.h"
 
 #include "Units/Units.h"
 #include "Units/UnitStructs.h"
@@ -50,6 +51,7 @@ void APController::BeginPlay() {
 	resources->AffectResourceCounter(EResources::R_Stone, 20, true);
 	resources->AffectResourceCounter(EResources::R_Bread, 20, true);
 	resources->AffectResourceCounter(EResources::R_Iron, 20, true);
+	resources->AffectResourceCounter(EResources::R_Planks, 10, true);
 
 	//grab initial units and assign them this controller
 	for (TActorIterator<AUnits> ActorItr(GetWorld()); ActorItr; ++ActorItr)
@@ -177,31 +179,15 @@ void APController::BeginPlaceBuilding(TEnumAsByte<EAvailableBuildings::EAvailabl
 		BuildingToPlace = nullptr;
 	}
 	
-	BuildingToPlace = FindOrSpawnBuilding(EBuilding, true); // find
+	BuildingToPlace = NewObject<ABuilding>()->FindOrSpawnBuilding(EBuilding, true, this->GetWorld()); // FindOrSpawnBuilding(EBuilding, true); // find
 
 	if (BuildingToPlace == nullptr || !CanBuyBuilding(BuildingToPlace)) return; // found no building or can not afford
 
-	BuildingToPlace = FindOrSpawnBuilding(EBuilding, false); // spawn
+	BuildingToPlace = BuildingToPlace->FindOrSpawnBuilding(EBuilding, false, GetWorld()); // spawn
 
 	IsPlacingBuilding = true;
-}
-ABuilding* APController::FindOrSpawnBuilding(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> EBuilding, bool Find) {
 
-	switch (EBuilding) {
-
-		case EAvailableBuildings::EAvailableBuildings::B_Barracks:
-			if(Find) return NewObject<ABarracks>();
-			else return GetWorld()->SpawnActor<ABarracks>();
-			break;
-
-		case EAvailableBuildings::EAvailableBuildings::B_Storage:
-			if (Find) return NewObject<AStorage>();
-			else return GetWorld()->SpawnActor<AStorage>();
-
-		case EAvailableBuildings::EAvailableBuildings::B_None:
-			return nullptr;
-	}
-	return nullptr;
+	Debug("IsPlacingBuilding");
 }
 
 bool APController::CanBuyBuilding(ABuilding* building) {
@@ -228,8 +214,11 @@ void APController::KeepBuildingAtMouse() {
 void APController::PlaceBuilding() {
 	if (!IsPlacingBuilding || !BuildingToPlace->GetIsValidPlacement()) return; // do nothing if not placing building or is overlapping	
 
+	Debug("is placing and valid placement");
+
 	IsPlacingBuilding = false;
 	BuildingToPlace->PlaceBuilding();
+	BuildingToPlace->SetPlayerController(this);
 
 	AddToOwnedBuildings(BuildingToPlace);
 
@@ -242,6 +231,8 @@ void APController::PlaceBuilding() {
 			//SelectedUnits[i]->SetUnitInstruction(EUnitInstructions::UI_Construct, "building", ToSpawn, ToSpawn->GetActorLocation());
 		}
 	}
+
+	BuildingToPlace = nullptr;
 
 	//CurrentSelectedBuilding = ToSpawn->GetName();
 	//CurrentSelectionHealth = ToSpawn->BuildingHealth;

@@ -47,7 +47,13 @@ namespace EAvailableBuildings
 	{
 		B_None						UMETA(DisplayName = "None"),
 		B_Barracks					UMETA(DisplayName = "Barracks"),
-		B_Storage					UMETA(DisplayName = "Storage")
+		B_Storage					UMETA(DisplayName = "Storage"),
+		B_SawMill					UMETA(DisplayName = "SawMill"),
+		B_OreRefinery				UMETA(DisplayName = "OreRefinery"),
+		B_SteelForge				UMETA(DisplayName = "SteelForge"),
+		B_TownCenter				UMETA(DisplayName = "TownCenter"),
+		B_CopperForge				UMETA(DisplayName = "CopperForge"),
+		B_IronForge					UMETA(DisplayName = "IronForge")
 	};
 }
 

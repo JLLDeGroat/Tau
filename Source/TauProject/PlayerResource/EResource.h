@@ -42,6 +42,7 @@ namespace EResources
 		R_Bread						UMETA(DisplayName = "Bread"),
 		R_Alcohol					UMETA(DisplayName = "Alcohol"),
 		R_Steel						UMETA(DisplayName = "Steel"),
+		R_Planks					UMETA(DisplayName = "Planks"),
 
 
 
