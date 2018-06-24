@@ -26,6 +26,38 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	#pragma region Basic Properties
+
+	UPROPERTY(EditAnywhere, Category = GlobalUnit)
+		FString DisplayName;
+
+
+	void SetDisplayName(FString name);
+	FString GetDisplayName();
+	FString GetType();
+	float GetHealth();
+	float GetMaxHealth();
+
+	#pragma endregion
+
+
+	#pragma region widget Properties
+
+	UPROPERTY(EditAnywhere, category = global)
+		FString Description;
+
+	UFUNCTION(BlueprintCallable)
+		FString GetHumanName();
+
+	UFUNCTION(BlueprintCallable)
+		FString GetDescription();
+
+	UFUNCTION(BlueprintCallable)
+		FString GetBuildCostAsUIString();
+
+	void SetDescription(FString desc);
+	#pragma endregion
+
 
 	#pragma region Movement And Instructions
 	void ResetUnitInstructionsOnMove();
@@ -35,6 +67,7 @@ public:
 	void MoveUnitAndConstruct(AActor* Building, FVector Location);
 	void MoveUnitAndAttack(AActor* actor);
 	void MoveUnitAndHarvest(AActor* actor, FVector location);
+	void MoveUnitAndHarvestBuilding(AActor* building);
 
 	void IsMovementInstructionComplete();
 	void IsAttackInstructionComplete();
@@ -55,7 +88,9 @@ public:
 	UPROPERTY()
 		float SpawnTime;
 
-	TArray<UResourceCost*> GetBuildCost();
+	UFUNCTION(BlueprintCallable)
+		TArray<UResourceCost*> GetBuildCost();
+
 
 	float GetSpawnTime();
 	#pragma endregion
@@ -105,9 +140,6 @@ public:
 	#pragma endregion
 
 	#pragma region Combat 
-
-	UPROPERTY(EditAnywhere, Category = GlobalUnit)
-		FString UnitDisplayName;
 
 	UPROPERTY(EditAnywhere, Category = GlobalUnit)
 		float LineOfSight;

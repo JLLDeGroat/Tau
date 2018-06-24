@@ -37,6 +37,7 @@ namespace EBuildStates
 		BS_Damaged2					UMETA(DisplayName = "Damaged2"),
 		BS_Damaged3					UMETA(DisplayName = "Damaged3"),
 		BS_Destroyed				UMETA(DisplayName = "Destroyed"),
+		BS_Depleted					UMETA(DisplayName = "Depleted")
 	};
 }
 
@@ -53,7 +54,10 @@ namespace EAvailableBuildings
 		B_SteelForge				UMETA(DisplayName = "SteelForge"),
 		B_TownCenter				UMETA(DisplayName = "TownCenter"),
 		B_CopperForge				UMETA(DisplayName = "CopperForge"),
-		B_IronForge					UMETA(DisplayName = "IronForge")
+		B_IronForge					UMETA(DisplayName = "IronForge"),
+
+		B_FarmLand					UMETA(DisplayName = "FarmLand"),
+		B_Farm						UMETA(DisplayName = "Farm")
 	};
 }
 

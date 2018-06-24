@@ -25,16 +25,4 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	
-	UFUNCTION()
-		void StartOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
-	UFUNCTION()
-		void EndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
-
-	void SetMeshOnState();
-
-
-	void SetBarracksMesh(bool placed);
-	
 };

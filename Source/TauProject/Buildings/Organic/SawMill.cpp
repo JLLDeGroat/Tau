@@ -57,11 +57,8 @@ ASawMill::ASawMill() {
 	if (DamageStage3Asset.Succeeded()) Stage3Damage = DamageStage3Asset.Object;
 	else GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, TEXT("Failed to get Barracks Cons stage1 mesh, Will break"));
 
-
-	//spawning overlap events
 	Box->OnComponentBeginOverlap.AddDynamic(this, &ASawMill::StartOverlap);
 	Box->OnComponentEndOverlap.AddDynamic(this, &ASawMill::EndOverlap);
-
 
 	BuildingName = "Barracks";
 	Health = 1;
@@ -71,16 +68,11 @@ ASawMill::ASawMill() {
 
 	BuildingType = EAvailableBuildings::B_SawMill;
 	IsConverter = true;
-
-	PrimaryActorTick.bCanEverTick = true;
-	SetActorTickInterval(1);
 }
 
 
 void ASawMill::BeginPlay() {
 	Super::BeginPlay();
-
-
 
 
 	TArray<UResourceCost*> costs;
@@ -96,77 +88,4 @@ void ASawMill::BeginPlay() {
 
 void ASawMill::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
-
-	if (!IsPlaced) {
-		CheckIsValidPlacement();
-		SetSawMillMesh(IsPlaced);
-	}
-	else {
-		SetMeshOnState();
-	}
-
 }
-
-
-
-#pragma region Overlaps
-
-void ASawMill::StartOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
-	FString sentence = "Actor: " + OtherActor->GetName() + " Component: " + OtherComp->GetName();
-	if (!IsPlaced && OtherActor != this) {
-		OverlappingComponents.Add(OtherComp);
-	}
-}
-
-void ASawMill::EndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
-	if (!IsPlaced && OtherActor != this) {
-		OverlappingComponents.Remove(OtherComp);
-	}
-}
-
-#pragma endregion
-
-#pragma region Placing Building
-
-void ASawMill::SetSawMillMesh(bool placed) {
-
-	if (!placed) {
-		if (GetIsValidPlacement()) {
-			Box->SetStaticMesh(BuildingMesh);
-		}
-		else {
-			Box->SetStaticMesh(FailedBuildingMesh);
-		}
-	}
-}
-
-#pragma endregion
-
-#pragma region Building Mesh changes
-
-void ASawMill::SetMeshOnState() {
-	if (CurrentBuildingState == EBuildStates::BS_Complete) {
-		Box->SetStaticMesh(BuildingMesh);
-	}
-	if (CurrentBuildingState == EBuildStates::BS_Constructing1) {
-		Box->SetStaticMesh(Stage1Construction);
-	}
-	if (CurrentBuildingState == EBuildStates::BS_Constructing2) {
-		Box->SetStaticMesh(Stage2Construction);
-	}
-	if (CurrentBuildingState == EBuildStates::BS_Constructing3) {
-		Box->SetStaticMesh(Stage3Construction);
-	}
-	if (CurrentBuildingState == EBuildStates::BS_Damaged1) {
-		Box->SetStaticMesh(Stage1Damage);
-	}
-	if (CurrentBuildingState == EBuildStates::BS_Damaged2) {
-		Box->SetStaticMesh(Stage2Damage);
-	}
-	if (CurrentBuildingState == EBuildStates::BS_Damaged3) {
-		Box->SetStaticMesh(Stage3Damage);
-	}
-}
-
-#pragma endregion
-

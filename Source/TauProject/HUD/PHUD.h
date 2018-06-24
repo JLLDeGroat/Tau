@@ -5,9 +5,9 @@
 #include "Units/Units.h"
 #include "Buildings/Building.h"
 #include "Controller/ControllerStructs.h"
+#include "Resources/Resource.h"
 #include "PHUD.generated.h"
-/**
- * 
+/* 
  */
 UCLASS()
 class TAUPROJECT_API APHUD : public AHUD
@@ -32,6 +32,8 @@ public:
     TArray <AUnits*> SelectedUnits;
 	UPROPERTY()
 	TArray <ABuilding*> SelectedBuildings;
+	UPROPERTY()
+		TArray<AResource*> SelectedResources;
 	//TArray <AResources*> SelectedResources;
 	//class ABuilding* SelectedBuilding;
 
@@ -52,10 +54,21 @@ public:
 
 
 	UPROPERTY()
-		TSubclassOf<class UUserWidget> BarracksHudClass;
+		TSubclassOf<class UUserWidget> BarracksHudClass; 
 	UPROPERTY()
 		class UUserWidget* BarracksWidget;
 
+	UPROPERTY()
+		TSubclassOf<class UUserWidget> DetailsHudClass;
+	UPROPERTY()
+		class UUserWidget* DetailsWidget;
+
+
+	UPROPERTY()
+		TSubclassOf<class UUserWidget> MainBottomUIHudClass;
+
+	UPROPERTY()
+		class UUserWidget* MainBottomWidget;
 
 
 	void InitializeWidgets();

@@ -23,12 +23,14 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
 	
 
 
 	UPROPERTY(EditAnywhere, Category = GlobalResource)
 		float ResourceCount;
+
+	UPROPERTY(EditAnywhere, Category = GlobalResource)
+		float ResourceCountOriginal;
 
 	UPROPERTY(EditAnywhere, Category = GlobalResource)
 		FString DisplayName;
@@ -59,9 +61,6 @@ public:
 
 	float SetInitialResources(TEnumAsByte<EResources::All> resource);
 	
-	
-
-
 	#pragma endregion
 
 

@@ -42,6 +42,8 @@ public:
 		UStaticMesh* Stage2Damage;
 	UPROPERTY()
 		UStaticMesh* Stage3Damage;
+	UPROPERTY()
+		UStaticMesh* DepletedMesh;
 
 	UPROPERTY()
 		AController* control;
@@ -61,11 +63,40 @@ public:
 	UPROPERTY(EditAnywhere, category = BuildingGlobal)
 		bool CanStore;
 
+	#pragma region Basic Properties
+
+	FString GetName();
+	FString GetType();
+	float GetHealth();
+	float GetMaxHealth();
+
+	#pragma endregion
+
+	#pragma region widget Properties
+
+	UPROPERTY(EditAnywhere, category = global)
+		FString Description;
+
+	UFUNCTION(BlueprintCallable)
+		FString GetHumanName();
+
+	UFUNCTION(BlueprintCallable)
+		FString GetDescription();
+
+	UFUNCTION(BlueprintCallable)
+		FString GetBuildCostAsUIString();
+
+
+	void SetDescription(FString desc);
+
+	#pragma endregion
+
 	#pragma region Costing
 	UPROPERTY()
 		TArray<UResourceCost*> BuildCost;
 
-	TArray<UResourceCost*> GetBuildCost();
+	UFUNCTION(BlueprintCallable)
+		TArray<UResourceCost*> GetBuildCost();
 
 	void SetBuildCosts(TArray<UResourceCost*> costList);
 	#pragma endregion
@@ -81,14 +112,41 @@ public:
 		bool CanPlace;
 
 	UPROPERTY()
+		bool RadiusPlaceRules;
+
+	UPROPERTY()
+		TEnumAsByte<EAvailableBuildings::EAvailableBuildings> RadiusPlaceActor;
+
+	UPROPERTY()
+		float RadiusPlaceAmount;
+
+	UPROPERTY()
 		TArray<UPrimitiveComponent*> OverlappingComponents;
 
+	UFUNCTION()
+		void StartOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+		void EndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 
 	void SetBuildingAsPlaced();
 	void CheckIsValidPlacement();
 	bool GetIsValidPlacement();
 	void SetIsValidPlacement(bool valid);
+
+	bool SpecialSpawnConditionsMet();
+
+	void SetRadiusPlaceRules(bool value);
+	bool GetIsRadiusPlaceRule();
+	void SetRadiusPlaceActor(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> value);
+	TEnumAsByte<EAvailableBuildings::EAvailableBuildings> GetRadiusPlaceActor();
+	void SetRadiusPlaceAmount(float value);
+	float GetRadiusPlaceAmount();
+
+	
+
+	void SetMeshOnValidPlacement();
 
 	void PlaceBuilding();
 
@@ -157,10 +215,39 @@ public:
 
 	#pragma endregion
 
+	#pragma region Depletable
+
+	UPROPERTY()
+		bool IsDepletableResourceBuilding;
+
+	UPROPERTY()
+		bool IsDepletableResourceDepleted;
+
+	UPROPERTY()
+		UObject* DepletableResource;
+
+	float GetCurrentDepletableResource();
+	
+	void AffectCurrentDepletableResource(float amount, bool IsAdd = false);
+
+	void SetupDepletableResource(UObject* resource);
+
+	void SetIsDepletableResourceBuilding(bool val);
+	bool GetIsDepletableResourceBuilding();
+
+	bool GetIsDepletableResourceDepleted();
+
+	void SetIsDepletableResourceDepleted(bool val = true);
+
+	float RemoveAmountFromDepletableResource(float amount);
+
+	#pragma endregion
+
 	#pragma region Utils
 
 	ABuilding* FindOrSpawnBuilding(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> building, bool Find, UWorld* world);
 
+	void SetMeshOnState();
 	#pragma endregion
 
 	void Debug(FString error);

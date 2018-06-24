@@ -14,14 +14,14 @@ void APHUD::DrawHUD()
 	if (bIsSelecting) {
 		SelectedUnits.Empty();
 		SelectedBuildings.Empty();
-
+		SelectedResources.Empty();
 
 		CurrentPoint = GetMousePosition2D();
 		DrawRect(FLinearColor(0, 0, 1, .15), InitialPoint.X, InitialPoint.Y,
 			CurrentPoint.X - InitialPoint.X, CurrentPoint.Y - InitialPoint.Y);
 		GetActorsRootInSelectionRectangle<AUnits>(InitialPoint, CurrentPoint, SelectedUnits, false, false);
 		GetActorsInSelectionRectangle<ABuilding>(InitialPoint, CurrentPoint, SelectedBuildings, false, false);
-		//GetActorsInSelectionRectangle<AResources>(InitialPoint, CurrentPoint, SelectedResources, false, false);
+		GetActorsInSelectionRectangle<AResource>(InitialPoint, CurrentPoint, SelectedResources, false, false);		
 	}
 }
 
@@ -46,41 +46,17 @@ void APHUD::BeginPlay() {
 
 void APHUD::InitializeWidgets() {
 
-	FStringClassReference ResourceWidgetClassRef(TEXT("/Game/Blueprints/Widgets/Resource.Resource_C"));
-	if (UClass* ResourceWidgetClass = ResourceWidgetClassRef.TryLoadClass<UUserWidget>()) {
-		ResourceWidget = CreateWidget<UUserWidget>(GetWorld(), ResourceWidgetClass);
-		ResourceWidget->AddToViewport();
-		ShowWidget(ResourceWidget);
-	}
-	else {
-		Debug("Failed To Get Resource widget");
-	}
-
-
-	FStringClassReference SelectionWidgetClassRef(TEXT("/Game/Blueprints/Widgets/Selection.Selection_C"));
-	if (UClass* SelectionWidgetClass = SelectionWidgetClassRef.TryLoadClass<UUserWidget>())
+	FStringClassReference BottomUIWidgetClassRef(TEXT("/Game/Blueprints/Widgets/BottomUI.BottomUI_C"));
+	if (UClass* BottomUIWidgetClass = BottomUIWidgetClassRef.TryLoadClass<UUserWidget>())
 	{
 		//UUserWidget* MyWidget = CreateWidget<UUserWidget>(GetWorld(), MyWidgetClass);
-		SelectionWidget = CreateWidget<UUserWidget>(GetWorld(), SelectionWidgetClass);
-		SelectionWidget->AddToViewport();
-		HideWidget(SelectionWidget);
+		MainBottomWidget = CreateWidget<UUserWidget>(GetWorld(), BottomUIWidgetClass);
+		MainBottomWidget->AddToViewport();
+		ShowWidget(MainBottomWidget);
 		// Do stuff with MyWidget
 	}
 	else {
-		Debug("Failed To Get Selection Widget");
-	}
-
-	FStringClassReference BarracksWidgetClassRef(TEXT("/Game/Blueprints/Widgets/Barracks.Barracks_C"));
-	if (UClass* BarracksWidgetClass = BarracksWidgetClassRef.TryLoadClass<UUserWidget>())
-	{
-		//UUserWidget* MyWidget = CreateWidget<UUserWidget>(GetWorld(), MyWidgetClass);
-		BarracksWidget = CreateWidget<UUserWidget>(GetWorld(), BarracksWidgetClass);
-		BarracksWidget->AddToViewport();
-		HideWidget(BarracksWidget);
-		// Do stuff with MyWidget
-	}
-	else {
-		Debug("Failed To Get Barracks Widget");
+		Debug("Failed To Get Main Bottom Widget");
 	}
 }
 
@@ -103,18 +79,21 @@ void APHUD::HideWidget(TEnumAsByte<EWidgets::EWidgetToShow> widget) {
 }
 
 void APHUD::HideAllWidgets() {
-	UUserWidget* swidget = GetWidget(EWidgets::EWidgetToShow::W_Selection);
-	UUserWidget* bwidget = GetWidget(EWidgets::EWidgetToShow::W_Barracks);
-	HideWidget(swidget);
-	HideWidget(bwidget);
+	//UUserWidget* swidget = GetWidget(EWidgets::EWidgetToShow::W_Selection);
+	//UUserWidget* bwidget = GetWidget(EWidgets::EWidgetToShow::W_Barracks);
+	//HideWidget(swidget);
+	//HideWidget(bwidget);
 }
 
 UUserWidget* APHUD::GetWidget(TEnumAsByte<EWidgets::EWidgetToShow> widget) {
 	switch (widget) {
-		case EWidgets::EWidgetToShow::W_Selection:
+		/*case EWidgets::EWidgetToShow::W_Selection:
 			return SelectionWidget;
 		case EWidgets::EWidgetToShow::W_Barracks:
 			return BarracksWidget;
+		case EWidgets::EWidgetToShow::W_Details:
+			return DetailsWidget;
+*/
 		case EWidgets::EWidgetToShow::W_None:
 			return nullptr;
 	}

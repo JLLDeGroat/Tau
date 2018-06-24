@@ -16,7 +16,6 @@ ABarracks::ABarracks()
 	Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BuildingBody"));
 	Box->SetupAttachment(RootComponent);
  
-
 	//StaticMesh'/Game/Models/Debug/BasicHouse_UB.BasicHouse_UB'
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BoxAsset(TEXT("/Game/Models/Debug/BasicHouse.BasicHouse"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FailedBoxAsset(TEXT("/Game/Models/Debug/BasicHouse_OL.BasicHouse_OL"));
@@ -58,13 +57,10 @@ ABarracks::ABarracks()
 	if (DamageStage3Asset.Succeeded()) Stage3Damage = DamageStage3Asset.Object;
 	else GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, TEXT("Failed to get Barracks Cons stage1 mesh, Will break"));
 	
-
-	//spawning overlap events
 	Box->OnComponentBeginOverlap.AddDynamic(this, &ABarracks::StartOverlap);
 	Box->OnComponentEndOverlap.AddDynamic(this, &ABarracks::EndOverlap);
-
 	
-	BuildingName = "Barracks";
+	BuildingName = "Pea Generator";
 	Health = 1;
 	MaxHealth = 500;
 
@@ -72,91 +68,27 @@ ABarracks::ABarracks()
 
 	BuildingType = EAvailableBuildings::B_Barracks;
 
-	PrimaryActorTick.bCanEverTick = true;
-	SetActorTickInterval(1);
+
+    //setting build costs
+	TArray<UResourceCost*> resCost;
+	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Stone, 10));
+	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Iron, 5));
+	SetBuildCosts(resCost);
+	//
 }
 
 // Called when the game starts or when spawned
 void ABarracks::BeginPlay()
 {
-	Super::BeginPlay();	
-
+	Super::BeginPlay();
 }
 
 // Called every frame
 void ABarracks::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-    
-	if (!IsPlaced) {
-		CheckIsValidPlacement();
-		SetBarracksMesh(IsPlaced);
-	}
-	else {
-		SetMeshOnState();
-	}
-
 }
 
 
-#pragma region Overlaps
 
-void ABarracks::StartOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
-	FString sentence = "Actor: " + OtherActor->GetName() + " Component: " + OtherComp->GetName();
-	if (!IsPlaced && OtherActor != this) {	
-		OverlappingComponents.Add(OtherComp);
-	}
-}
-
-void ABarracks::EndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
-	if (!IsPlaced && OtherActor != this) {
-		OverlappingComponents.Remove(OtherComp);
-	}
-}
-
-#pragma endregion
-
-#pragma region Placing Building
-
-void ABarracks::SetBarracksMesh(bool placed) {
-	
-	if (!placed) {
-		if (GetIsValidPlacement()) {
-			Box->SetStaticMesh(BuildingMesh);
-		}
-		else {
-			Box->SetStaticMesh(FailedBuildingMesh);
-		}
-	}
-}
-
-#pragma endregion
-
-#pragma region Building Mesh changes
-
-void ABarracks::SetMeshOnState() {
-	if (CurrentBuildingState == EBuildStates::BS_Complete) {
-		Box->SetStaticMesh(BuildingMesh);
-	}
-	if (CurrentBuildingState == EBuildStates::BS_Constructing1) {
-		Box->SetStaticMesh(Stage1Construction);
-	}
-	if (CurrentBuildingState == EBuildStates::BS_Constructing2) {
-		Box->SetStaticMesh(Stage2Construction);
-	}
-	if (CurrentBuildingState == EBuildStates::BS_Constructing3) {
-		Box->SetStaticMesh(Stage3Construction);
-	}
-	if (CurrentBuildingState == EBuildStates::BS_Damaged1) {
-		Box->SetStaticMesh(Stage1Damage);
-	}
-	if (CurrentBuildingState == EBuildStates::BS_Damaged2) {
-		Box->SetStaticMesh(Stage2Damage);
-	}
-	if (CurrentBuildingState == EBuildStates::BS_Damaged3) {
-		Box->SetStaticMesh(Stage3Damage);
-	}
-}
-
-#pragma endregion
 

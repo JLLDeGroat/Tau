@@ -57,15 +57,21 @@ AStorage::AStorage()
 	if (DamageStage3Asset.Succeeded()) Stage3Damage = DamageStage3Asset.Object;
 	else GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, TEXT("Failed to get Storage Cons stage1 mesh, Will break"));
 
+	Box->OnComponentBeginOverlap.AddDynamic(this, &AStorage::StartOverlap);
+	Box->OnComponentEndOverlap.AddDynamic(this, &AStorage::EndOverlap);
 
 	CanStore = true;
 
 	Health = 1;
 	MaxHealth = 350;
 
+	BuildingName = "Storage Building";
 
-	PrimaryActorTick.bCanEverTick = true;
-	SetActorTickInterval(1);
+	//costlist
+	TArray<UResourceCost*> costList;
+	costList.Add(NewObject<UResourceCost>()->Setup(EResources::R_Lumber, 4));
+	costList.Add(NewObject<UResourceCost>()->Setup(EResources::R_Stone, 2));
+	SetBuildCosts(costList);
 
 }
 
@@ -73,84 +79,12 @@ AStorage::AStorage()
 void AStorage::BeginPlay()
 {
 	Super::BeginPlay();	
-
-	TArray<UResourceCost*> costList;
-	costList.Add(NewObject<UResourceCost>()->Setup(EResources::R_Lumber, 4));
-	costList.Add(NewObject<UResourceCost>()->Setup(EResources::R_Stone, 2));
-
-	SetBuildCosts(costList);
 }
 
 // Called every frame
 void AStorage::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (!IsPlaced) {
-		CheckIsValidPlacement();
-		SetStorageMesh(IsPlaced);
-	}
-	else {
-		SetMeshOnState();
-	}
 }
 
 
-#pragma region Overlaps
-
-void AStorage::StartOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
-	FString sentence = "Actor: " + OtherActor->GetName() + " Component: " + OtherComp->GetName();
-	if (!IsPlaced && OtherActor != this) {
-		OverlappingComponents.Add(OtherComp);
-	}
-}
-
-void AStorage::EndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
-	if (!IsPlaced && OtherActor != this) {
-		OverlappingComponents.Remove(OtherComp);
-	}
-}
-
-#pragma endregion
-
-#pragma region Placing Building
-
-void AStorage::SetStorageMesh(bool placed) {
-
-	if (!placed) {
-		if (GetIsValidPlacement()) {
-			Box->SetStaticMesh(BuildingMesh);
-		}
-		else {
-			Box->SetStaticMesh(FailedBuildingMesh);
-		}
-	}
-}
-
-#pragma endregion
-
-#pragma region Building Mesh changes
-
-void AStorage::SetMeshOnState() {
-	if (CurrentBuildingState == EBuildStates::BS_Complete) {
-		Box->SetStaticMesh(BuildingMesh);
-	}
-	if (CurrentBuildingState == EBuildStates::BS_Constructing1) {
-		Box->SetStaticMesh(Stage1Construction);
-	}
-	if (CurrentBuildingState == EBuildStates::BS_Constructing2) {
-		Box->SetStaticMesh(Stage2Construction);
-	}
-	if (CurrentBuildingState == EBuildStates::BS_Constructing3) {
-		Box->SetStaticMesh(Stage3Construction);
-	}
-	if (CurrentBuildingState == EBuildStates::BS_Damaged1) {
-		Box->SetStaticMesh(Stage1Damage);
-	}
-	if (CurrentBuildingState == EBuildStates::BS_Damaged2) {
-		Box->SetStaticMesh(Stage2Damage);
-	}
-	if (CurrentBuildingState == EBuildStates::BS_Damaged3) {
-		Box->SetStaticMesh(Stage3Damage);
-	}
-}
-#pragma endregion

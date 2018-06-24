@@ -23,6 +23,9 @@
 #include "Organic/TownCenter.h"
 #include "Organic/SteelForge.h"
 
+#include "Organic/Farm.h"
+#include "Organic/Depletable/FarmField.h"
+
 
 
 // Sets default values
@@ -44,8 +47,14 @@ void ABuilding::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (!IsPlaced) {
+		CheckIsValidPlacement();
+		SetMeshOnValidPlacement();
+	}
+
 	if (IsPlaced) {
 		ChangeStateOnHealthChange();
+		SetMeshOnState();
 
 		if (IsConverter && IsConstructed) {
 			UpdateResourceConvert(DeltaTime);
@@ -53,8 +62,66 @@ void ABuilding::Tick(float DeltaTime)
 	}
 	if (SpawnList.Num() > 0) SpawnUnitTick(DeltaTime);
 
-	
 }
+
+#pragma region Overlaps
+
+void ABuilding::StartOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
+	FString sentence = "Actor: " + OtherActor->GetName() + " Component: " + OtherComp->GetName();
+	if (!IsPlaced && OtherActor != this) {
+		OverlappingComponents.Add(OtherComp);
+	}
+}
+
+void ABuilding::EndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
+	if (!IsPlaced && OtherActor != this) {
+		OverlappingComponents.Remove(OtherComp);
+	}
+}
+
+#pragma endregion
+
+#pragma region Basic Properties
+
+FString ABuilding::GetName() {
+	return BuildingName;
+}
+FString ABuilding::GetType() {
+	return BuildingName;
+}
+float ABuilding::GetHealth(){
+	return Health;
+}
+float ABuilding::GetMaxHealth() {
+	return MaxHealth;
+}
+
+#pragma endregion
+
+#pragma region widget properties
+
+FString ABuilding::GetDescription() {
+	return Description;
+}
+
+void ABuilding::SetDescription(FString desc) {
+	Description = desc;
+}
+
+FString ABuilding::GetHumanName() {
+	return BuildingName;
+}
+
+FString ABuilding::GetBuildCostAsUIString() {
+	FString CostListString = "";
+
+	for (int32 i = 0; i < BuildCost.Num(); i++) {
+		CostListString += FString::SanitizeFloat(BuildCost[i]->Amount) + "x " + BuildCost[i]->GetResourceType();
+	}
+	return CostListString;
+}
+
+#pragma endregion
 
 #pragma region build costs
 
@@ -69,20 +136,70 @@ void ABuilding::SetBuildCosts(TArray<UResourceCost*> costList) {
 
 #pragma region Building Placement
 
+void ABuilding::SetMeshOnValidPlacement() {
+	if (GetIsValidPlacement()) {
+		Box->SetStaticMesh(BuildingMesh);
+	}
+	else {
+		Box->SetStaticMesh(FailedBuildingMesh);
+	}
+}
+
 void ABuilding::CheckIsValidPlacement() {
 	for (int32 i = 0; i < OverlappingComponents.Num(); i++) {
 		Debug(OverlappingComponents[i]->GetName());
 		
 		if (
 			OverlappingComponents[i]->GetName() == "UnitBody" || OverlappingComponents[i]->GetName() == "CollisionCylinder" || // unit is in the way
-			OverlappingComponents[i]->GetName() == "BuildingBody" // building is in the way
+			OverlappingComponents[i]->GetName() == "BuildingBody" || // building is in the way
+			OverlappingComponents[i]->GetName() == "ResourceBody" // Resource Is in the way
 			)
 		{
 			SetIsValidPlacement(false);
 			return; // return with fail
 		}
 	}
+
+	if (RadiusPlaceRules) {
+		//check if current location is within distance radius of another building
+		APController* pCon = Cast<APController>(GetPlayerController());
+
+		for (int32 i = 0; i < pCon->OwnedBuildings.Num(); i++) {
+			ABuilding* building = Cast<ABuilding>(pCon->OwnedBuildings[i]);
+			if (building->BuildingType == GetRadiusPlaceActor()) {
+				if (FVector::Dist(this->GetActorLocation(), pCon->OwnedBuildings[i]->GetActorLocation()) <= GetRadiusPlaceAmount()) { // is close enough to a building, good to go
+					SetIsValidPlacement(true);
+					return;
+				}
+			}
+		}
+	}
+
 	SetIsValidPlacement(true);
+}
+
+void ABuilding::SetRadiusPlaceRules(bool value) {
+	RadiusPlaceRules = value;
+}
+
+bool ABuilding::GetIsRadiusPlaceRule() {
+	return RadiusPlaceRules;
+}
+
+void ABuilding::SetRadiusPlaceActor(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> value) {
+	RadiusPlaceActor = value;
+}
+
+TEnumAsByte<EAvailableBuildings::EAvailableBuildings> ABuilding::GetRadiusPlaceActor(){
+	return RadiusPlaceActor;
+}
+
+void ABuilding::SetRadiusPlaceAmount(float value) {
+	RadiusPlaceAmount = value;
+}
+
+float ABuilding::GetRadiusPlaceAmount() {
+	return RadiusPlaceAmount;
 }
 
 void ABuilding::SetIsValidPlacement(bool valid) {
@@ -93,15 +210,35 @@ bool ABuilding::GetIsValidPlacement() {
 	return CanPlace;
 }
 
+bool ABuilding::SpecialSpawnConditionsMet() {
+
+	if (APController* pCon = Cast<APController>(control)) {
+
+		if (this->BuildingType == EAvailableBuildings::B_FarmLand) {
+			//if a Farm is not made (ie email) then this can not be placed ever
+			for (int32 i = 0; i < pCon->OwnedBuildings.Num(); i++) {
+				if (ABuilding* building = Cast<ABuilding>(pCon->OwnedBuildings[i])) {
+					if (building->BuildingType == EAvailableBuildings::B_Farm) {
+						return true; //found farm
+					}
+				}
+			}
+			return false; // didnt find farm
+		}
+	}
+
+
+	return true;
+}
+
 void ABuilding::PlaceBuilding() {
-
-
 	this->SetBuildingAsPlaced();	
 
 	this->SetBuildingState(EBuildStates::BS_Constructing1);
 	this->SetActorLocation(this->GetActorLocation());
 	this->SetBuildingOwner(EBuildingOwnerships::EBuildingOwnership::BO_Player);
 	
+	this->SetActorTickInterval(1);
 
 	TArray<UStaticMeshComponent*> Components;
 	this->GetComponents<UStaticMeshComponent>(Components);
@@ -119,6 +256,7 @@ void ABuilding::SetBuildingAsPlaced() {
 void ABuilding::SetPlayerController(AController* controller) {
 	control = controller;
 }
+
 AController* ABuilding::GetPlayerController() {
 	return control;
 }
@@ -303,6 +441,59 @@ void ABuilding::UpdateResourceConvert(float DeltaTime) {
 
 #pragma endregion
 
+#pragma region Depletable Region
+
+void ABuilding::SetIsDepletableResourceBuilding(bool val) {
+	IsDepletableResourceBuilding = val;
+}
+
+bool ABuilding::GetIsDepletableResourceBuilding() {
+	return IsDepletableResourceBuilding;
+}
+
+void ABuilding::SetupDepletableResource(UObject* resource) {
+	DepletableResource = NewObject<UResourceCost>();
+	DepletableResource = Cast<UResourceCost>(resource);
+}
+
+float ABuilding::GetCurrentDepletableResource() {
+	return Cast<UResourceCost>(DepletableResource)->Amount;
+}
+
+void ABuilding::AffectCurrentDepletableResource(float amount, bool IsAdd) {
+	if (IsAdd) Cast<UResourceCost>(DepletableResource)->Amount += amount;
+	else Cast<UResourceCost>(DepletableResource)->Amount -= amount;	
+
+	UResourceCost* rCost = Cast<UResourceCost>(DepletableResource);
+	if (rCost->Amount <= 0) {
+		SetIsDepletableResourceDepleted();
+	}
+}
+
+bool ABuilding::GetIsDepletableResourceDepleted() {
+	return IsDepletableResourceDepleted;
+}
+
+void ABuilding::SetIsDepletableResourceDepleted(bool val) {
+	IsDepletableResourceDepleted = val;
+}
+
+float ABuilding::RemoveAmountFromDepletableResource(float amount) {
+	UResourceCost* resource = Cast<UResourceCost>(DepletableResource);
+
+	if (resource->Amount < amount) {
+		amount = resource->Amount;
+	}
+	resource->Amount -= amount;
+	
+	if (resource->Amount <= 0) {
+		this->SetBuildingState(EBuildStates::BS_Depleted);
+	}
+
+	return amount;
+}
+#pragma endregion
+
 #pragma region Utils
 
 ABuilding* ABuilding::FindOrSpawnBuilding(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> building, bool Find, UWorld* world) {
@@ -311,23 +502,57 @@ ABuilding* ABuilding::FindOrSpawnBuilding(TEnumAsByte<EAvailableBuildings::EAvai
 
 	case EAvailableBuildings::EAvailableBuildings::B_Barracks:
 		if (Find) return NewObject<ABarracks>();
-		else return world->SpawnActor<ABarracks>();
-		break;
+		else return world->SpawnActor<ABarracks>();		
 
 	case EAvailableBuildings::EAvailableBuildings::B_Storage:
 		if (Find) return NewObject<AStorage>();
 		else return world->SpawnActor<AStorage>();
+		
 
 	case EAvailableBuildings::EAvailableBuildings::B_SawMill:
 		if (Find) return NewObject<ASawMill>();
 		else return world->SpawnActor<ASawMill>();
+		
 
+	case EAvailableBuildings::EAvailableBuildings::B_Farm:
+		if (Find) return NewObject<AFarm>();
+		else return world->SpawnActor<AFarm>();
+
+
+	case EAvailableBuildings::EAvailableBuildings::B_FarmLand:
+		if (Find) return NewObject<AFarmField>();
+		else return world->SpawnActor<AFarmField>();
 
 	case EAvailableBuildings::EAvailableBuildings::B_None:
 		return nullptr;
-	}
-	return nullptr;
 
+	default:
+		return nullptr;
+	}
+}
+
+void ABuilding::SetMeshOnState() {
+	if (CurrentBuildingState == EBuildStates::BS_Complete) {
+		Box->SetStaticMesh(BuildingMesh);
+	}
+	if (CurrentBuildingState == EBuildStates::BS_Constructing1) {
+		Box->SetStaticMesh(Stage1Construction);
+	}
+	if (CurrentBuildingState == EBuildStates::BS_Constructing2) {
+		Box->SetStaticMesh(Stage2Construction);
+	}
+	if (CurrentBuildingState == EBuildStates::BS_Constructing3) {
+		Box->SetStaticMesh(Stage3Construction);
+	}
+	if (CurrentBuildingState == EBuildStates::BS_Damaged1) {
+		Box->SetStaticMesh(Stage1Damage);
+	}
+	if (CurrentBuildingState == EBuildStates::BS_Damaged2) {
+		Box->SetStaticMesh(Stage2Damage);
+	}
+	if (CurrentBuildingState == EBuildStates::BS_Damaged3) {
+		Box->SetStaticMesh(Stage3Damage);
+	}
 }
 
 #pragma endregion

@@ -8,9 +8,9 @@
 #include "ControllerStructs.h"
 #include "PlayerResource/All.h"
 #include "PlayerResource/EResource.h"
+#include "Selection/PlayerSelection.h"
+#include "Resources/Resource.h"
 #include "PController.generated.h"
-
-
 UCLASS()
 class TAUPROJECT_API APController : public APlayerController
 {
@@ -41,6 +41,9 @@ public:
 
 	UPROPERTY()
 		TArray<ABuilding*> SelectedBuildings;
+
+	UPROPERTY()
+		TArray<AResource*> SelectedResources;
 	
 	#pragma region Widgets	
 	UPROPERTY(EditAnywhere)
@@ -93,6 +96,27 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void AddUnitToBuildingSpawnList(TEnumAsByte<EUnitList::All> unit);
+
+	#pragma endregion
+
+	#pragma region Hud Management
+
+	UPROPERTY()
+		UPlayerSelection* SelectionDetails;
+
+	void DetermineSelectedUnit();
+	void UpdateSelectedUnit();
+
+	UFUNCTION(BlueprintCallable)
+	UPlayerSelection* GetSelectionDetails();
+
+	UPROPERTY()
+		bool HasSelectedEntity;
+
+	UFUNCTION(BlueprintCallable)
+		bool GetHasSelectedEntity();
+
+	void SetHasSelectedEntity(bool val);
 
 	#pragma endregion
 

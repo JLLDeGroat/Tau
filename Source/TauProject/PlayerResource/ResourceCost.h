@@ -22,6 +22,13 @@ public:
 		float Amount;
 	UPROPERTY()
 		TEnumAsByte<EResources::All> res;	
+
+
+	UFUNCTION(BlueprintCallable)
+		float GetAmount();
+
+	UFUNCTION(BlueprintCallable)
+		FString GetResourceType();
 	
 	
 

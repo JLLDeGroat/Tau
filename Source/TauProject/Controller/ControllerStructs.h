@@ -22,6 +22,7 @@ namespace EWidgets
 	{
 		W_Selection					UMETA(DisplayName = "Selection"),
 		W_Barracks					UMETA(DisplayName = "Barracks"),
+		W_Details					UMETA(DisplayName = "Details"),
 		W_None						UMETA(DisplayName = "None")
 	};
 }

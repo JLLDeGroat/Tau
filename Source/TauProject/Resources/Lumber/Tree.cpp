@@ -22,7 +22,11 @@ ATree::ATree()
 		Box->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
 		Box->SetWorldScale3D(FVector(.5f));
 		Box->bGenerateOverlapEvents = true;
+		Box->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
+		Box->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
 	}
+
+	
 
 	ResourceType = EResources::R_Lumber;
 	ResourceCount = SetInitialResources(ResourceType);

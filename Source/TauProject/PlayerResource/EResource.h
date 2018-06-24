@@ -34,6 +34,7 @@ namespace EResources
 		R_CopperOre					UMETA(DisplayName = "CopperOre"),
 		R_Coal						UMETA(DisplayName = "Coal"),
 		R_Water						UMETA(DisplayName = "Water"),
+		R_Food						UMETA(DisplayName = "Food"),
 
 
 

@@ -70,7 +70,7 @@ void AUnits::Tick(float DeltaTime)
 		if (IsHarvesting) Debug("Is Harvesting");
 
 		if (UnitTask->HasTask()) {
-			Debug(UnitTask->GetFirstTask()->Name);
+			//Debug(UnitTask->GetFirstTask()->Name);
 		}
 
 
@@ -134,8 +134,28 @@ void AUnits::WithinRangeOfAttack(UPrimitiveComponent* OverlappedComp, AActor* Ot
 				DropResourcesOff();
 				UnitTask->RemoveFirstTask();
 
-				if (UnitTask->HasTask() && UnitTask->GetFirstTask()->GetInstruction() == EUnitInstructions::UI_Gather) {
-					MoveUnitAndHarvest(UnitTask->GetFirstTask()->GetTargetActor(), UnitTask->GetFirstTask()->GetTargetActor()->GetActorLocation());
+				if (UnitTask->HasTask() && UnitTask->GetFirstTask()->GetInstruction() == EUnitInstructions::UI_Gather || UnitTask->GetFirstTask()->GetInstruction() == EUnitInstructions::UI_GatherBuilding) {
+					if (AResource* res = Cast<AResource>(UnitTask->GetFirstTask()->GetTargetActor())) {
+						MoveUnitAndHarvest(UnitTask->GetFirstTask()->GetTargetActor(), UnitTask->GetFirstTask()->GetTargetActor()->GetActorLocation());
+					}
+
+					if (ABuilding* bui = Cast<ABuilding>(UnitTask->GetFirstTask()->GetTargetActor())) {
+						if (bui->IsConstructed && CanHarvest) {
+							MoveUnitAndHarvestBuilding(UnitTask->GetFirstTask()->GetTargetActor());
+						}
+					}
+				}
+			}
+
+			if (building->IsDepletableResourceBuilding && building->IsConstructed && CanHarvest) {
+				if (IsTaskedToHarvestFoundActor(building) || HasNoTaskAndFoundResourceToHarvest(building)) {
+					this->GetController()->StopMovement();
+					LookAt(building);
+
+					Debug("Found DepletableBuilding");
+
+					IsHarvesting = true;
+					HarvestingActor = OtherActor;
 				}
 			}
 		}
@@ -150,6 +170,53 @@ void AUnits::OutOfRangeOfAttack(UPrimitiveComponent* OverlappedComp, AActor* Oth
 
 #pragma endregion
 
+#pragma region Basic Properties
+
+void AUnits::SetDisplayName(FString name) {
+	DisplayName = name;
+}
+FString AUnits::GetDisplayName() {
+	return DisplayName;
+}
+FString AUnits::GetType() {
+	return DisplayName;
+}
+float AUnits::GetHealth() {
+	return Health;
+}
+float AUnits::GetMaxHealth() {
+	return MaxHealth;
+}
+
+#pragma endregion
+
+#pragma region Widget properties
+
+
+FString AUnits::GetDescription() {
+	return Description;
+}
+
+void AUnits::SetDescription(FString desc) {
+	Description = desc;
+}
+
+FString AUnits::GetHumanName() {
+	return DisplayName;
+}
+
+FString AUnits::GetBuildCostAsUIString() {
+	FString CostListString = "";
+
+	for (int32 i = 0; i < BuildCost.Num(); i++) {
+		CostListString += FString::SanitizeFloat(BuildCost[i]->Amount) + "x " + BuildCost[i]->GetResourceType();
+	}
+	return CostListString;
+}
+
+
+#pragma endregion
+
 #pragma region Movement And Actions
 
 void AUnits::MoveUnit(AActor* ActorAtLocation, FVector Location, int32 UnitNumber, int32 UnitCount) {
@@ -160,6 +227,10 @@ void AUnits::MoveUnit(AActor* ActorAtLocation, FVector Location, int32 UnitNumbe
 	if (ABuilding* building = Cast<ABuilding>(ActorAtLocation)) {
 		if (building->Health < building->MaxHealth && this->CanBuild) {
 			MoveUnitAndConstruct(building, building->GetActorLocation());
+		}
+
+		if (building->GetIsDepletableResourceBuilding() && this->CanHarvest) {
+			MoveUnitAndHarvestBuilding(building);
 		}
 	}
 	
@@ -195,6 +266,11 @@ void AUnits::MoveUnitAndConstruct(AActor* building, FVector location) {
 void AUnits::MoveUnitAndHarvest(AActor* resource, FVector location) {
 	UnitTask->CreateAndAddTask("Harvest task", this->GetActorLocation(), location, resource, EUnitInstructions::UI_Gather);
 	UNavigationSystem::SimpleMoveToActor(GetController(), resource);
+}
+
+void AUnits::MoveUnitAndHarvestBuilding(AActor* building) {
+	UnitTask->CreateAndAddTask("Harvest Building", this->GetActorLocation(), building->GetActorLocation(), building, EUnitInstructions::UI_GatherBuilding);
+	UNavigationSystem::SimpleMoveToActor(GetController(), building);
 }
 
 void AUnits::IsMovementInstructionComplete() {	
@@ -386,44 +462,76 @@ void AUnits::HarvestTick() {
 		AmountHarvested = SpaceRemaining;
 	}
 
-	AResource* resource = Cast<AResource>(HarvestingActor);
+	if (AResource* resource = Cast<AResource>(HarvestingActor)) {
+		if (resource->IsDepleted) {
+			IsHarvesting = false;
 
-	if (resource->IsDepleted) {
-		IsHarvesting = false;
+			Debug("Stopped harvesting due to know resource in this resource Actor");
 
-		Debug("Stopped harvesting due to know resource in this resource Actor");
-
-	    
-
-		UnitTask->RemoveFirstTask();
-		AttemptToFindAnotherResourceOfType(resource);
-		
-
-		return;
-	}
-
-	Inventory->AddToResourceCount(resource->RemoveAmountFromCount(AmountHarvested), resource->GetResourceType());
-	//remove amount from the resource.;
-
-	if (Inventory->IsInventoryFull()) {
-		IsHarvesting = false;
-
-		AResource* res = Cast<AResource>(UnitTask->GetFirstTask()->GetTargetActor());
-		ABuilding* storage = Cast<ABuilding>(FindNearestStorageBuilding());
-
-		UnitTask->RemoveFirstTask();
-
-		if (storage == nullptr) {			
-			Debug("Could not find Storage building");
+			UnitTask->RemoveFirstTask();
+			AttemptToFindAnotherResourceOfType(resource);
 			return;
 		}
 
-		UnitTask->CreateAndAddTaskAUTO("auto drop off", this->GetActorLocation(), storage->GetActorLocation(), storage, EUnitInstructions::UI_DropOff);
-		Debug("Dropping Off");
-		UnitTask->CreateAndAddTaskAUTO("auto return and gather", this->GetActorLocation(), res->GetActorLocation(), res, EUnitInstructions::UI_Gather, false);
-		Debug("Going to Auto gather");
-		UNavigationSystem::SimpleMoveToActor(this->GetController(), storage);
-	}	
+		Inventory->AddToResourceCount(resource->RemoveAmountFromCount(AmountHarvested), resource->GetResourceType());
+		//remove amount from the resource.;
+
+		if (Inventory->IsInventoryFull()) {
+			IsHarvesting = false;
+
+			AResource* res = Cast<AResource>(UnitTask->GetFirstTask()->GetTargetActor());
+			ABuilding* storage = Cast<ABuilding>(FindNearestStorageBuilding());
+
+			UnitTask->RemoveFirstTask();
+
+			if (storage == nullptr) {
+				Debug("Could not find Storage building");
+				return;
+			}
+
+			UnitTask->CreateAndAddTaskAUTO("auto drop off", this->GetActorLocation(), storage->GetActorLocation(), storage, EUnitInstructions::UI_DropOff);
+			Debug("Dropping Off");
+			UnitTask->CreateAndAddTaskAUTO("auto return and gather", this->GetActorLocation(), res->GetActorLocation(), res, EUnitInstructions::UI_Gather, false);
+			Debug("Going to Auto gather");
+			UNavigationSystem::SimpleMoveToActor(this->GetController(), storage);
+		}
+	}
+
+	if (ABuilding* building = Cast<ABuilding>(HarvestingActor)) {
+		if (building->GetIsDepletableResourceDepleted()) {
+			IsHarvesting = false;
+
+			Debug("Stopped harvesting due to no resource in this resource building");
+
+			UnitTask->RemoveFirstTask();
+			//AttemptToFindAnotherResourceOfType(resource);
+			return;
+		}
+
+		Inventory->AddToResourceCount(building->RemoveAmountFromDepletableResource(AmountHarvested), Cast<UResourceCost>(building->DepletableResource)->res);
+
+		//remove amount harvested from resource building
+
+		if (Inventory->IsInventoryFull()) {
+			IsHarvesting = false;
+
+			ABuilding* storage = Cast<ABuilding>(FindNearestStorageBuilding());
+
+			UnitTask->RemoveFirstTask();
+
+			if (storage == nullptr) {
+				Debug("Could not find storage building");
+				return;
+			}
+
+			UnitTask->CreateAndAddTaskAUTO("auto drop off", this->GetActorLocation(), storage->GetActorLocation(), storage, EUnitInstructions::UI_DropOff);
+			Debug("Dropping off");
+			UnitTask->CreateAndAddTaskAUTO("Auto return and gather", this->GetActorLocation(), building->GetActorLocation(), building, EUnitInstructions::UI_GatherBuilding);
+			Debug("going to auto gather");
+			UNavigationSystem::SimpleMoveToActor(this->GetController(), building);
+		}
+
+	}
 }
 
 AActor* AUnits::FindNearestStorageBuilding() {
