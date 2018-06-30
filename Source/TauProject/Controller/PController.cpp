@@ -34,6 +34,8 @@
 
 #include "Selection/PlayerSelection.h"
 
+#include "Utils/DetailsStringLibrary.h"
+
 #pragma region Basic
 
 APController::APController() {
@@ -65,6 +67,8 @@ void APController::BeginPlay() {
 		AUnits* unit = *ActorItr;
 		if (unit->GetUnitOwner() == EUnitOwnerships::UO_Player) unit->SetController(this);
 	}
+
+	ActivityLibrary = NewObject<UDetailsStringLibrary>();
 }
 
 
@@ -78,7 +82,6 @@ void APController::Tick(float DeltaTime) {
 
 #pragma endregion
 
-
 #pragma region Input Component Binding
 
 void APController::SetupInputComponent() {
@@ -87,6 +90,8 @@ void APController::SetupInputComponent() {
 	InputComponent->BindAction("LeftClick", IE_Released, this, &APController::LeftMouseClickRelease);
 	InputComponent->BindAction("RightClick", IE_Pressed, this, &APController::RightMouseClick);
 	InputComponent->BindAction("RightClick", IE_Released, this, &APController::RightMouseClickRelease);
+
+	InputComponent->BindAction("DebugOne", IE_Pressed, this, &APController::DebugFunctionOne);
 }
 
 #pragma endregion
@@ -131,6 +136,14 @@ void APController::RightMouseClickRelease() {
 	}
 }
 
+void APController::DebugFunctionOne() {
+
+	for (int32 i = 0; i < ResearchedList.Num(); i++)
+		Debug(ResearchedList[i]->GetResearchName());
+
+	if (ResearchedList.Num() == 0) Debug("No research completed");
+}
+
 #pragma endregion
 
 #pragma region Resource Management
@@ -157,7 +170,7 @@ void APController::BeginPlaceBuilding(TEnumAsByte<EAvailableBuildings::EAvailabl
 	BuildingToPlace = NewObject<ABuilding>()->FindOrSpawnBuilding(EBuilding, true, this->GetWorld()); // FindOrSpawnBuilding(EBuilding, true); // find
 	BuildingToPlace->SetPlayerController(this);
 	
-	if (BuildingToPlace == nullptr || !CanBuyBuilding(BuildingToPlace) || !BuildingToPlace->SpecialSpawnConditionsMet()) return; // found no building or can not afford or adheres to special rules
+	if (BuildingToPlace == nullptr || !CanBuyBuilding(BuildingToPlace) || !BuildingToPlace->SpecialSpawnConditionsMet() || !HasResearchForBuilding(BuildingToPlace)) return; // found no building or can not afford or adheres to special rules
 
 	BuildingToPlace = BuildingToPlace->FindOrSpawnBuilding(EBuilding, false, GetWorld()); // spawn
 	BuildingToPlace->SetPlayerController(this);
@@ -168,6 +181,26 @@ void APController::BeginPlaceBuilding(TEnumAsByte<EAvailableBuildings::EAvailabl
 
 bool APController::CanBuyBuilding(ABuilding* building) {
 	return resources->CanAffordResourceList(building->GetBuildCost());
+}
+
+bool APController::HasResearchForBuilding(ABuilding* building) {
+	if (building->ResearchCost.Num() == 0) return true;
+
+	for (int32 i = 0; i < building->ResearchCost.Num(); i++) {
+		bool hasThisResearch = false;
+
+		for (int32 x = 0; x < ResearchedList.Num(); x++) {
+			if (ResearchedList[x]->GetResearchName() == building->ResearchCost[i]->GetResearchName()) {
+				hasThisResearch = true;
+			}
+		}
+
+		if (!hasThisResearch) {
+			Debug("Can not build " + building->BuildingName + " as you dont have the research " + building->ResearchCost[i]->GetResearchName());
+			return false;
+		}
+	}
+	return true;
 }
 
 void APController::KeepBuildingAtMouse() {
@@ -250,7 +283,7 @@ void APController::AddUnitToBuildingSpawnList(TEnumAsByte<EUnitList::All> unit) 
 void APController::DetermineSelectedUnit() {
 
 	if (SelectedUnits.Num() > 0) {
-		if (SelectionDetails == nullptr) SelectionDetails = NewObject<UPlayerSelection>();
+		if (SelectionDetails == nullptr) SelectionDetails = NewObject<UPlayerSelection>(this);
 
 		AUnits* thisunit = SelectedUnits[0];
 
@@ -261,7 +294,7 @@ void APController::DetermineSelectedUnit() {
 			thisunit->GetName(),
 			thisunit->GetHealth(),
 			thisunit->GetMaxHealth(),
-			instruction,
+			instruction, // get activity string here
 			thisunit->GetName(),
 			thisunit
 		);
@@ -269,7 +302,7 @@ void APController::DetermineSelectedUnit() {
 		SetHasSelectedEntity(true);
 	}
 	else if (SelectedBuildings.Num() > 0) {
-		if (SelectionDetails == nullptr) SelectionDetails = NewObject<UPlayerSelection>();
+		if (SelectionDetails == nullptr) SelectionDetails = NewObject<UPlayerSelection>(this);
 
 		ABuilding* building = SelectedBuildings[0];
 
@@ -277,7 +310,7 @@ void APController::DetermineSelectedUnit() {
 			building->GetName(),
 			building->GetHealth(),
 			building->GetMaxHealth(),
-			building->CurrentBuildingState,
+			building->GetCurrentState(), // get activity string here
 			building->GetName(),
 			building
 		);
@@ -285,7 +318,7 @@ void APController::DetermineSelectedUnit() {
 		SetHasSelectedEntity(true);	
 	}
 	else if (SelectedResources.Num() > 0) {
-		if (SelectionDetails == nullptr) SelectionDetails = NewObject<UPlayerSelection>();
+		if (SelectionDetails == nullptr) SelectionDetails = NewObject<UPlayerSelection>(this);
 
 		AResource* res = SelectedResources[0];
 
@@ -354,6 +387,41 @@ void APController::SetWidgetToShow() {
 
 TEnumAsByte<EWidgets::EWidgetToShow> APController::GetWidgetToShow() {
 	return WidgetToShow;
+}
+
+#pragma endregion
+
+#pragma region Research
+
+TArray<UResearcher*> APController::GetResearchedList() {
+	return ResearchedList;
+}
+
+void APController::AddToResearchList(UResearcher* research) {
+	for (int32 i = 0; i < ResearchedList.Num(); i++) {
+		if (research->Name == ResearchedList[i]->Name) {
+			Debug("Already added this research");
+			return;
+		}
+	}
+	ResearchedList.Add(research);
+}
+
+
+void APController::AddListToResearchList(TArray<UResearcher*> researchList) {
+	for (int32 i = 0; i < researchList.Num(); i++) {
+
+		UResearcher* research = researchList[i];
+
+		for (int32 x = 0; x < ResearchedList.Num(); x++) {
+			if (research->Name == ResearchedList[i]->Name) {
+				Debug("Already added this research");
+				break;
+			}
+		}
+
+		ResearchedList.Add(research);
+	}
 }
 
 #pragma endregion

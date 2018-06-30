@@ -1,4 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 #pragma once
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
@@ -6,6 +5,8 @@
 #include "PlayerResource/ResourceCost.h"
 #include "Units/Units.h"
 #include "Units/UnitStructs.h" 
+#include "Buildings/Researcher.h"
+#include "Buildings/Researcher.h"
 #include "Building.generated.h"
 UCLASS()
 class TAUPROJECT_API ABuilding : public AActor
@@ -99,6 +100,12 @@ public:
 		TArray<UResourceCost*> GetBuildCost();
 
 	void SetBuildCosts(TArray<UResourceCost*> costList);
+
+
+	UPROPERTY()
+		TArray<UResearcher*> ResearchCost;
+
+	void SetResearchCosts(TArray<UResearcher*> costList);
 	#pragma endregion
 
 	#pragma region Spawning
@@ -248,6 +255,45 @@ public:
 	ABuilding* FindOrSpawnBuilding(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> building, bool Find, UWorld* world);
 
 	void SetMeshOnState();
+	#pragma endregion
+
+	#pragma region Researchable
+
+	UFUNCTION(BlueprintCallable)
+		TArray<UResearcher*> GetResearchList();
+
+	UFUNCTION(BlueprintCallable)
+		UResearcher* GetResearchItemByName(FString name);
+
+	UFUNCTION(BlueprintCallable)
+		FString GetResearchCostAsUIString(FString name);
+
+	UFUNCTION(BlueprintCallable)
+		FString GetResearchDescription(FString name);
+
+	void SetResearchObjects(TArray<UResearcher*> researchList);
+
+	UPROPERTY()
+		bool CanResearch;
+
+	UPROPERTY()
+		TArray<UResearcher*> ResearchObject;
+
+	UFUNCTION(BlueprintCallable)
+		bool GetIsResearchBuilding();
+
+	UPROPERTY()
+		bool CurrentlyResearching;
+
+	UResearcher* CurrentlyResearchingObject;
+
+	void SetIsResearchBuilding(bool val);
+
+	UFUNCTION(BluePrintCallable)
+		void BeginResearching(FString name);
+
+	void ResearchTick(float DeltaTime);
+
 	#pragma endregion
 
 	void Debug(FString error);

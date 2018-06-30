@@ -56,6 +56,8 @@ namespace EAvailableBuildings
 		B_CopperForge				UMETA(DisplayName = "CopperForge"),
 		B_IronForge					UMETA(DisplayName = "IronForge"),
 
+		B_PhylosopherCave			UMETA(DisplayName = "PhylosophersCave"),
+
 		B_FarmLand					UMETA(DisplayName = "FarmLand"),
 		B_Farm						UMETA(DisplayName = "Farm")
 	};

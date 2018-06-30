@@ -40,28 +40,28 @@ public:
 
 	#pragma region HudWidgets
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD", meta = (BlueprintProtected = "true"))
-		TSubclassOf<class UUserWidget> SelectionHudClass;
-	UPROPERTY()
-		class UUserWidget* SelectionWidget;
+	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "HUD", meta = (BlueprintProtected = "true"))
+	//	TSubclassOf<class UUserWidget> SelectionHudClass;
+	//UPROPERTY()
+	//	class UUserWidget* SelectionWidget;
 
 
-	UPROPERTY()
-		TSubclassOf<class UUserWidget> ResourceHudClass;
-	UPROPERTY()
-		class UUserWidget* ResourceWidget;
+	//UPROPERTY()
+	//	TSubclassOf<class UUserWidget> ResourceHudClass;
+	//UPROPERTY()
+	//	class UUserWidget* ResourceWidget;
 
 
 
-	UPROPERTY()
-		TSubclassOf<class UUserWidget> BarracksHudClass; 
-	UPROPERTY()
-		class UUserWidget* BarracksWidget;
+	//UPROPERTY()
+	//	TSubclassOf<class UUserWidget> BarracksHudClass; 
+	//UPROPERTY()
+	//	class UUserWidget* BarracksWidget;
 
-	UPROPERTY()
-		TSubclassOf<class UUserWidget> DetailsHudClass;
-	UPROPERTY()
-		class UUserWidget* DetailsWidget;
+	//UPROPERTY()
+	//	TSubclassOf<class UUserWidget> DetailsHudClass;
+	//UPROPERTY()
+	//	class UUserWidget* DetailsWidget;
 
 
 	UPROPERTY()

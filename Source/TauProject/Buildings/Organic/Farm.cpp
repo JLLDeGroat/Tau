@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "Storage.h"
+#include "Farm.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TimerManager.h"
 #include "Components/CapsuleComponent.h"
@@ -11,13 +11,12 @@
 #include "Engine/Engine.h"
 
 // Sets default values
-AStorage::AStorage()
+AFarm::AFarm()
 {
 	Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BuildingBody"));
 	Box->SetupAttachment(RootComponent);
 
-	//StaticMesh'/Game/Models/Debug/BasicHouse_UB.BasicHouse_UB'
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> BoxAsset(TEXT("/Game/Models/Debug/BasicHouse.BasicHouse"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> BoxAsset(TEXT("/Game/Models/Debug/BasicWindmill.BasicWindmill"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FailedBoxAsset(TEXT("/Game/Models/Debug/BasicHouse_OL.BasicHouse_OL"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> ConstructionStage1Asset(TEXT("/Game/Models/Debug/BasicHouse_UB.BasicHouse_UB"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> ConstructionStage2Asset(TEXT("/Game/Models/Debug/BasicHouse_UB2.BasicHouse_UB2"));
@@ -25,6 +24,7 @@ AStorage::AStorage()
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> DamageStage1Asset(TEXT("/Game/Models/Debug/BasicHouse_UB.BasicHouse_UB"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> DamageStage2Asset(TEXT("/Game/Models/Debug/BasicHouse_UB.BasicHouse_UB"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> DamageStage3Asset(TEXT("/Game/Models/Debug/BasicHouse_UB.BasicHouse_UB"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> DepletedAsset(TEXT("/Game/Models/Debug/BasicHouse_UB.BasicHouse_UB"));
 
 	if (BoxAsset.Succeeded()) {
 		BuildingMesh = BoxAsset.Object;
@@ -37,54 +37,55 @@ AStorage::AStorage()
 	}
 
 	if (FailedBoxAsset.Succeeded())  FailedBuildingMesh = FailedBoxAsset.Object;
-	else GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, TEXT("Failed to get Storage Overlapping Mesh, Will break"));
+	else GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, TEXT("Failed to get Barracks Overlapping Mesh, Will break"));
 
 	if (ConstructionStage1Asset.Succeeded()) Stage1Construction = ConstructionStage1Asset.Object;
-	else GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, TEXT("Failed to get Storage Cons stage1 mesh, Will break"));
+	else GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, TEXT("Failed to get Barracks Cons stage1 mesh, Will break"));
 
 	if (ConstructionStage2Asset.Succeeded()) Stage2Construction = ConstructionStage2Asset.Object;
-	else GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, TEXT("Failed to get Storage Cons stage1 mesh, Will break"));
+	else GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, TEXT("Failed to get Barracks Cons stage1 mesh, Will break"));
 
 	if (ConstructionStage2Asset.Succeeded()) Stage3Construction = ConstructionStage3Asset.Object;
-	else GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, TEXT("Failed to get Storage Cons stage1 mesh, Will break"));
+	else GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, TEXT("Failed to get Barracks Cons stage1 mesh, Will break"));
 
 	if (DamageStage1Asset.Succeeded()) Stage1Damage = DamageStage1Asset.Object;
-	else GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, TEXT("Failed to get Storage Cons stage1 mesh, Will break"));
+	else GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, TEXT("Failed to get Barracks Cons stage1 mesh, Will break"));
 
 	if (DamageStage2Asset.Succeeded()) Stage2Damage = DamageStage2Asset.Object;
-	else GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, TEXT("Failed to get Storage Cons stage1 mesh, Will break"));
+	else GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, TEXT("Failed to get Barracks Cons stage1 mesh, Will break"));
 
 	if (DamageStage3Asset.Succeeded()) Stage3Damage = DamageStage3Asset.Object;
-	else GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, TEXT("Failed to get Storage Cons stage1 mesh, Will break"));
+	else GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Black, TEXT("Failed to get Barracks Cons stage1 mesh, Will break"));
 
-	Box->OnComponentBeginOverlap.AddDynamic(this, &AStorage::StartOverlap);
-	Box->OnComponentEndOverlap.AddDynamic(this, &AStorage::EndOverlap);
+	if (DepletedAsset.Succeeded()) DepletedMesh = DepletedAsset.Object;
+	else Debug("Failed To Get Depleted Mesh");
+
+	Box->OnComponentBeginOverlap.AddDynamic(this, &AFarm::StartOverlap);
+	Box->OnComponentEndOverlap.AddDynamic(this, &AFarm::EndOverlap);
+
+	BuildingName = "Barracks";
+	Health = 1;
+	MaxHealth = 500;
 
 	CanStore = true;
 
-	Health = 1;
-	MaxHealth = 350;
+	IsPlaced = false;
 
-	BuildingName = "Storage";
-
-	//costlist
-	TArray<UResourceCost*> costList;
-	costList.Add(NewObject<UResourceCost>()->Setup(EResources::R_Lumber, 4));
-	costList.Add(NewObject<UResourceCost>()->Setup(EResources::R_Stone, 2));
-	SetBuildCosts(costList);
+	BuildingType = EAvailableBuildings::B_Farm;
 
 }
 
 // Called when the game starts or when spawned
-void AStorage::BeginPlay()
+void AFarm::BeginPlay()
 {
-	Super::BeginPlay();	
+	Super::BeginPlay();
+	
 }
 
 // Called every frame
-void AStorage::Tick(float DeltaTime)
+void AFarm::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-}
 
+}
 

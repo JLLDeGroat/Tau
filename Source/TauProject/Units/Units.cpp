@@ -209,7 +209,7 @@ FString AUnits::GetBuildCostAsUIString() {
 	FString CostListString = "";
 
 	for (int32 i = 0; i < BuildCost.Num(); i++) {
-		CostListString += FString::SanitizeFloat(BuildCost[i]->Amount) + "x " + BuildCost[i]->GetResourceType();
+		CostListString += FString::SanitizeFloat(BuildCost[i]->Amount) + "x " + BuildCost[i]->GetResourceType() + "   ";
 	}
 	return CostListString;
 }
@@ -507,11 +507,8 @@ void AUnits::HarvestTick() {
 			//AttemptToFindAnotherResourceOfType(resource);
 			return;
 		}
-
 		Inventory->AddToResourceCount(building->RemoveAmountFromDepletableResource(AmountHarvested), Cast<UResourceCost>(building->DepletableResource)->res);
-
 		//remove amount harvested from resource building
-
 		if (Inventory->IsInventoryFull()) {
 			IsHarvesting = false;
 
@@ -530,7 +527,6 @@ void AUnits::HarvestTick() {
 			Debug("going to auto gather");
 			UNavigationSystem::SimpleMoveToActor(this->GetController(), building);
 		}
-
 	}
 }
 
@@ -641,7 +637,13 @@ float AUnits::GetSpawnTime() {
 #pragma region Utilis
 
 void AUnits::LookAt(AActor* actor) {
+	FRotator CurrentRotation = GetActorRotation();
+
+	Debug(FString::SanitizeFloat(CurrentRotation.Pitch) + ": is the current pitch of this unit as it looks at " + actor->GetName());
+
 	FRotator PlayerRot = FRotationMatrix::MakeFromX(this->GetActorLocation() - actor->GetActorLocation()).Rotator();
+	PlayerRot.Pitch = CurrentRotation.Pitch; // reset the pitch, units should not look up or down?
+
 	SetActorLocation(this->GetActorLocation());
 	SetActorRotation(PlayerRot);
 }

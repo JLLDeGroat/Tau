@@ -1,4 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
 #pragma once
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
@@ -10,6 +9,8 @@
 #include "PlayerResource/EResource.h"
 #include "Selection/PlayerSelection.h"
 #include "Resources/Resource.h"
+#include "Utils/DetailsStringLibrary.h"
+#include "Buildings/Researcher.h"
 #include "PController.generated.h"
 UCLASS()
 class TAUPROJECT_API APController : public APlayerController
@@ -35,6 +36,8 @@ public:
 
 	void RightMouseClick();
 	void RightMouseClickRelease();
+
+	void DebugFunctionOne();
 
 	UPROPERTY()
 		TArray<AUnits*> SelectedUnits;
@@ -83,7 +86,11 @@ public:
 
 	bool CanBuyBuilding(ABuilding* building);
 
+	bool HasResearchForBuilding(ABuilding* building);
+
 	void KeepBuildingAtMouse();
+
+	
 
 	void PlaceBuilding();
 
@@ -118,8 +125,25 @@ public:
 
 	void SetHasSelectedEntity(bool val);
 
-	#pragma endregion
+	UDetailsStringLibrary* ActivityLibrary;
 
+	#pragma endregion
+	
+	#pragma region Research
+
+	UPROPERTY()
+		TArray<UResearcher*> ResearchedList;
+
+	UFUNCTION(BlueprintCallable)
+		TArray<UResearcher*> GetResearchedList();
+
+	UFUNCTION(BlueprintCallable)
+		void AddToResearchList(UResearcher* research);
+
+	UFUNCTION(BlueprintCallable)
+		void AddListToResearchList(TArray<UResearcher*> researchList);
+
+	#pragma endregion
 
 	void Debug(FString string);
 };

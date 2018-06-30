@@ -3,24 +3,28 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
 #include "Buildings/Building.h"
-#include "Barracks.generated.h"
+#include "PhylosopherCave.generated.h"
 
+/**
+ * 
+ */
 UCLASS()
-class TAUPROJECT_API ABarracks : public ABuilding
+class TAUPROJECT_API APhylosopherCave : public ABuilding
 {
 	GENERATED_BODY()
+		APhylosopherCave();
 	
-public:	
-	// Sets default values for this actor's properties
-	ABarracks();
-
+	
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+
+	void SetupResearchItems();
+	
 };

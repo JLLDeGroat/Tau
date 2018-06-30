@@ -22,9 +22,12 @@
 #include "Organic/OreRefinery.h"
 #include "Organic/TownCenter.h"
 #include "Organic/SteelForge.h"
+#include "Organic/PhylosopherCave.h"
 
 #include "Organic/Farm.h"
 #include "Organic/Depletable/FarmField.h"
+
+#include "Buildings/Researcher.h"
 
 
 
@@ -61,6 +64,9 @@ void ABuilding::Tick(float DeltaTime)
 		}
 	}
 	if (SpawnList.Num() > 0) SpawnUnitTick(DeltaTime);
+
+
+	if (CurrentlyResearching) ResearchTick(DeltaTime);
 
 }
 
@@ -116,7 +122,7 @@ FString ABuilding::GetBuildCostAsUIString() {
 	FString CostListString = "";
 
 	for (int32 i = 0; i < BuildCost.Num(); i++) {
-		CostListString += FString::SanitizeFloat(BuildCost[i]->Amount) + "x " + BuildCost[i]->GetResourceType();
+		CostListString += FString::SanitizeFloat(BuildCost[i]->Amount) + "x " + BuildCost[i]->GetResourceType() + "   ";
 	}
 	return CostListString;
 }
@@ -131,6 +137,10 @@ TArray<UResourceCost*> ABuilding::GetBuildCost() {
 
 void ABuilding::SetBuildCosts(TArray<UResourceCost*> costList) {
 	BuildCost = costList;
+}
+
+void ABuilding::SetResearchCosts(TArray<UResearcher*> costList) {
+	ResearchCost = costList;
 }
 #pragma endregion
 
@@ -167,8 +177,11 @@ void ABuilding::CheckIsValidPlacement() {
 		for (int32 i = 0; i < pCon->OwnedBuildings.Num(); i++) {
 			ABuilding* building = Cast<ABuilding>(pCon->OwnedBuildings[i]);
 			if (building->BuildingType == GetRadiusPlaceActor()) {
-				if (FVector::Dist(this->GetActorLocation(), pCon->OwnedBuildings[i]->GetActorLocation()) <= GetRadiusPlaceAmount()) { // is close enough to a building, good to go
-					SetIsValidPlacement(true);
+				Debug(FString::SanitizeFloat(FVector::Dist(this->GetActorLocation(), pCon->OwnedBuildings[i]->GetActorLocation())));
+				
+				if (FVector::Dist(this->GetActorLocation(), pCon->OwnedBuildings[i]->GetActorLocation()) > GetRadiusPlaceAmount()) { // is not close enough
+					
+					SetIsValidPlacement(false);
 					return;
 				}
 			}
@@ -494,6 +507,101 @@ float ABuilding::RemoveAmountFromDepletableResource(float amount) {
 }
 #pragma endregion
 
+#pragma region Researchable
+
+TArray<UResearcher*> ABuilding::GetResearchList() {
+	return ResearchObject;
+}
+
+void ABuilding::SetResearchObjects(TArray<UResearcher*> researchList) {
+	ResearchObject = researchList;
+}
+
+FString ABuilding::GetResearchCostAsUIString(FString name) {
+	UResearcher* chosenResearch = GetResearchItemByName(name);
+	
+	FString CostListString = "";
+
+	for (int32 i = 0; i < chosenResearch->ResearchCost.Num(); i++) {
+		CostListString += FString::SanitizeFloat(chosenResearch->ResearchCost[i]->Amount) + "x " + chosenResearch->ResearchCost[i]->GetResourceType() + "   ";
+	}
+	return CostListString;
+}
+
+FString ABuilding::GetResearchDescription(FString name) {
+	UResearcher* chosenResearch = GetResearchItemByName(name);
+	return chosenResearch->Description;
+}
+
+UResearcher* ABuilding::GetResearchItemByName(FString name) {
+	for (int32 i = 0; i < ResearchObject.Num(); i++) {
+		if (name == ResearchObject[i]->GetResearchName()) {
+			return ResearchObject[i];
+		}
+	}
+	return nullptr;
+}
+
+bool ABuilding::GetIsResearchBuilding() {
+	return CanResearch;
+}
+
+void ABuilding::SetIsResearchBuilding(bool val) {
+	CanResearch = val;
+}
+
+void ABuilding::BeginResearching(FString Name) {
+	UResearcher* thisResearch = nullptr;
+	APController* pCon = Cast<APController>(control);
+
+	for (int32 i = 0; i < ResearchObject.Num(); i++) {
+		Debug(ResearchObject[i]->GetResearchName());
+		if (ResearchObject[i]->GetResearchName() == Name) {
+			thisResearch = ResearchObject[i];
+			break;
+		}
+	}
+
+	if (thisResearch == nullptr) {
+		Debug("Found no research item of name" + Name);
+		return;
+	}
+
+	if (!pCon->resources->CanAffordResourceList(thisResearch->ResearchCost)) {
+		Debug("Can not afford research");
+		return;
+	}
+
+	pCon->resources->AffectResouceListOnCounter(thisResearch->ResearchCost, false); // remove resource from player controller
+	CurrentlyResearchingObject = thisResearch;
+	CurrentlyResearchingObject->SetHasStarted(true);
+	CurrentlyResearching = true;
+
+	Debug("Started Researching");
+}
+
+void ABuilding::ResearchTick(float DeltaTime) {
+	CurrentlyResearchingObject->UpdateResearch(DeltaTime);
+	Debug("ResearchTick");
+	if (CurrentlyResearchingObject->GetIsFinished()) {
+		//show screen to say completed
+		Debug("Finished Researching " + CurrentlyResearchingObject->Name);
+		CurrentlyResearching = false;
+
+		Debug(CurrentlyResearchingObject->Name);
+		Debug(CurrentlyResearchingObject->Description);		
+
+		APController* pCon = Cast<APController>(control);
+
+		pCon->AddToResearchList(CurrentlyResearchingObject);
+		Debug("Added to Players completion list");
+	}
+}
+
+
+
+#pragma endregion
+
 #pragma region Utils
 
 ABuilding* ABuilding::FindOrSpawnBuilding(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> building, bool Find, UWorld* world) {
@@ -522,6 +630,10 @@ ABuilding* ABuilding::FindOrSpawnBuilding(TEnumAsByte<EAvailableBuildings::EAvai
 	case EAvailableBuildings::EAvailableBuildings::B_FarmLand:
 		if (Find) return NewObject<AFarmField>();
 		else return world->SpawnActor<AFarmField>();
+
+	case EAvailableBuildings::EAvailableBuildings::B_PhylosopherCave:
+		if (Find) return NewObject<APhylosopherCave>();
+		else return world->SpawnActor<APhylosopherCave>();
 
 	case EAvailableBuildings::EAvailableBuildings::B_None:
 		return nullptr;

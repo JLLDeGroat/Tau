@@ -61,6 +61,7 @@ FString UResourceCost::GetResourceType() {
 			return "What";
 		case EResources::R_None:
 			return "None";
+			
 
 		default:
 			return "Resource";
