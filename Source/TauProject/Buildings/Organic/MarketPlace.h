@@ -4,18 +4,20 @@
 
 #include "CoreMinimal.h"
 #include "Buildings/Building.h"
-#include "PhylosopherCave.generated.h"
+#include "MarketPlace.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class TAUPROJECT_API APhylosopherCave : public ABuilding
+class TAUPROJECT_API AMarketPlace : public ABuilding
 {
 	GENERATED_BODY()
-		APhylosopherCave();
 	
-	
+public:
+	// Sets default values for this actor's properties
+	AMarketPlace();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -23,6 +25,7 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
 
 
 	void SetupResearchItems();

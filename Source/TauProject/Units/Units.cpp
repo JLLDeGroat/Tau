@@ -67,12 +67,10 @@ void AUnits::Tick(float DeltaTime)
 		if (IsBuilding) BuildBuilding();
 		if (IsHarvesting) HarvestTick();
 
-		if (IsHarvesting) Debug("Is Harvesting");
-
+		
 		if (UnitTask->HasTask()) {
 			//Debug(UnitTask->GetFirstTask()->Name);
 		}
-
 
 		if (UnitTask != nullptr && UnitTask->HasTask() && UnitTask->GetFirstTask()->GetInstruction() == EUnitInstructions::UI_Move) IsMovementInstructionComplete();
 		if (UnitTask != nullptr && UnitTask->HasTask() && UnitTask->GetFirstTask()->GetInstruction() == EUnitInstructions::UI_Attack) IsAttackInstructionComplete();
@@ -631,6 +629,11 @@ TArray<UResourceCost*> AUnits::GetBuildCost() {
 float AUnits::GetSpawnTime() {
 	return SpawnTime;
 }
+
+void AUnits::SetBuildCosts(TArray<UResourceCost*> buildCost) {
+	BuildCost = buildCost;
+}
+
 
 #pragma endregion
 

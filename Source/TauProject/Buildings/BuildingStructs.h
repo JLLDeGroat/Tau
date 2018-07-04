@@ -55,6 +55,7 @@ namespace EAvailableBuildings
 		B_TownCenter				UMETA(DisplayName = "TownCenter"),
 		B_CopperForge				UMETA(DisplayName = "CopperForge"),
 		B_IronForge					UMETA(DisplayName = "IronForge"),
+		B_MarketPlace				UMETA(DisplayName = "MarketPlace"),
 
 		B_PhylosopherCave			UMETA(DisplayName = "PhylosophersCave"),
 

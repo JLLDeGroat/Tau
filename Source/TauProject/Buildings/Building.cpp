@@ -23,6 +23,7 @@
 #include "Organic/TownCenter.h"
 #include "Organic/SteelForge.h"
 #include "Organic/PhylosopherCave.h"
+#include "Organic/MarketPlace.h"
 
 #include "Organic/Farm.h"
 #include "Organic/Depletable/FarmField.h"
@@ -141,6 +142,14 @@ void ABuilding::SetBuildCosts(TArray<UResourceCost*> costList) {
 
 void ABuilding::SetResearchCosts(TArray<UResearcher*> costList) {
 	ResearchCost = costList;
+}
+
+void ABuilding::SetNeededBuildingList(TArray<FString> names) {
+	NeededBuildingList = names;
+}
+
+TArray<FString> ABuilding::GetNeededBuildingList() {
+	return NeededBuildingList;
 }
 #pragma endregion
 
@@ -282,6 +291,10 @@ void ABuilding::SetIsConstructed(bool val) {
 #pragma endregion
 
 #pragma region Building States
+
+bool ABuilding::GetIsConstructed() {
+	return this->IsConstructed;
+}
 
 void ABuilding::SetBuildingState(TEnumAsByte<EBuildStates::EBuildingStates> state) {
 	CurrentBuildingState = state;
@@ -626,6 +639,21 @@ ABuilding* ABuilding::FindOrSpawnBuilding(TEnumAsByte<EAvailableBuildings::EAvai
 		if (Find) return NewObject<AFarm>();
 		else return world->SpawnActor<AFarm>();
 
+	case EAvailableBuildings::EAvailableBuildings::B_IronForge:
+		if (Find) return NewObject<AIronForge>();
+		else return world->SpawnActor<AIronForge>();
+
+	case EAvailableBuildings::EAvailableBuildings::B_CopperForge:
+		if (Find) return NewObject<ACopperForge>();
+		else return world->SpawnActor<ACopperForge>();
+
+	case EAvailableBuildings::EAvailableBuildings::B_OreRefinery:
+		if (Find) return NewObject<AOreRefinery>();
+		else return world->SpawnActor<AOreRefinery>();
+
+	case EAvailableBuildings::EAvailableBuildings::B_MarketPlace:
+		if (Find) return NewObject<AMarketPlace>();
+		else return world->SpawnActor<AMarketPlace>();
 
 	case EAvailableBuildings::EAvailableBuildings::B_FarmLand:
 		if (Find) return NewObject<AFarmField>();

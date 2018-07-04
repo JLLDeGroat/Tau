@@ -91,6 +91,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 		TArray<UResourceCost*> GetBuildCost();
 
+	void SetBuildCosts(TArray<UResourceCost*> buildCost);
 
 	float GetSpawnTime();
 	#pragma endregion

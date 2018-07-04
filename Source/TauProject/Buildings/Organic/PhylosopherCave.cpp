@@ -60,6 +60,7 @@ APhylosopherCave::APhylosopherCave() {
 	Box->OnComponentEndOverlap.AddDynamic(this, &APhylosopherCave::EndOverlap);
 
 	BuildingName = "Think Tank";
+	Description = "The peas come together, and think through the needs and wants that will bring the peas into the future.";
 	Health = 1;
 	MaxHealth = 1200;
 
@@ -81,6 +82,8 @@ APhylosopherCave::APhylosopherCave() {
 
 	//setting research	
 	SetupResearchItems();
+	SetupBuildingNeedsItem();
+	SetupBuildCosts();
 }
 
 // Called when the game starts or when spawned
@@ -100,19 +103,31 @@ void APhylosopherCave::SetupResearchItems() {
 	TArray<UResearcher*> researchList;
 
 
+	//ORE REFINERY
+	UResearcher* oreRefinery = NewObject<UResearcher>();
+	oreRefinery->Name = "Ore Refinery";
+	oreRefinery->Description = "Learn the way of duplication, your smithee will alt f4 at the right moment allows doubling of smithed ingots";
+	oreRefinery->ResearchCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_IronOre, 10));
+	oreRefinery->ResearchCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_CopperOre, 10));
+	oreRefinery->ResearchTime = 5;
+
 	//IRON FORGE
-
-
 	UResearcher* ironForge = NewObject<UResearcher>();
 	ironForge->Name = "Iron Forge";
 	ironForge->Description = "Learn the ways of heating, by debating the best ways of cooking a fish.";
 	ironForge->ResearchCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Bread, 5));
+	ironForge->ResearchCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Copper, 5));
 	ironForge->ResearchTime = 5;
 
+	//COPPER FORGE
+	UResearcher* copperForge = NewObject<UResearcher>();
+	copperForge->Name = "Copper Forge";
+	copperForge->Description = "Learn the ways of heating, by debating the best ways of cooking a egg.";
+	copperForge->ResearchCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Bread, 5));
+	copperForge->ResearchCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_CopperOre, 5));
+	copperForge->ResearchTime = 5;
+
 	//HARVESTING I
-
-	
-
 	UResearcher* harvestingI = NewObject<UResearcher>();
 	harvestingI->Name = "HarvestingI";
 	harvestingI->Description = "discussing the hoe, the sickle and the scythe creates new ways of ripping plants from their home";
@@ -121,8 +136,22 @@ void APhylosopherCave::SetupResearchItems() {
 
 
 	//FINISH
-
 	researchList.Add(ironForge);
 	researchList.Add(harvestingI);
+	researchList.Add(oreRefinery);
 	SetResearchObjects(researchList);
+}
+
+void APhylosopherCave::SetupBuildingNeedsItem() {
+	TArray<FString> names;
+	names.Add("Farm");
+	names.Add("Market");
+	SetNeededBuildingList(names);
+}
+
+void APhylosopherCave::SetupBuildCosts() {
+	TArray<UResourceCost*> resCost;
+	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Stone, 10));
+	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Planks, 15));
+	SetBuildCosts(resCost);
 }

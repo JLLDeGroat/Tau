@@ -60,7 +60,8 @@ ASawMill::ASawMill() {
 	Box->OnComponentBeginOverlap.AddDynamic(this, &ASawMill::StartOverlap);
 	Box->OnComponentEndOverlap.AddDynamic(this, &ASawMill::EndOverlap);
 
-	BuildingName = "Barracks";
+	BuildingName = "Saw Mill";
+	Description = "Cut Sturdy wood into sturdier wood because it looks better.";
 	Health = 1;
 	MaxHealth = 500;
 
@@ -88,4 +89,17 @@ void ASawMill::BeginPlay() {
 
 void ASawMill::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
+}
+
+
+void ASawMill::SetupResearchItems() {
+	
+}
+void ASawMill::SetupBuildingNeedsItem() {
+
+}
+void ASawMill::SetupBuildCosts() {
+	TArray<UResourceCost*> resCost;
+	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Lumber, 15));
+	SetBuildCosts(resCost);
 }

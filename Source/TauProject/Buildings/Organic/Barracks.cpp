@@ -61,6 +61,8 @@ ABarracks::ABarracks()
 	Box->OnComponentEndOverlap.AddDynamic(this, &ABarracks::EndOverlap);
 	
 	BuildingName = "Pea Generator";
+	Description = "Basic millitary units can be trained (to minimal skill) units can come in a variety of arms and can not be equipped with " 
+		 "advanced millitary gear created in the armory.";
 	Health = 1;
 	MaxHealth = 500;
 
@@ -68,13 +70,9 @@ ABarracks::ABarracks()
 
 	BuildingType = EAvailableBuildings::B_Barracks;
 
-
-    //setting build costs
-	TArray<UResourceCost*> resCost;
-	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Stone, 10));
-	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Iron, 5));
-	SetBuildCosts(resCost);
-	//
+	SetupResearchItems();
+	SetupBuildingNeedsItem();
+	SetupBuildCosts();
 }
 
 // Called when the game starts or when spawned
@@ -91,4 +89,16 @@ void ABarracks::Tick(float DeltaTime)
 
 
 
+void ABarracks::SetupResearchItems() {
 
+}
+void ABarracks::SetupBuildingNeedsItem() {
+
+}
+void ABarracks::SetupBuildCosts() {
+	TArray<UResourceCost*> resCost;
+	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Stone, 10));
+	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Iron, 5));
+	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Copper, 5));
+	SetBuildCosts(resCost);
+}

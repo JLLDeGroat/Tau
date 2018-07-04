@@ -12,6 +12,7 @@
 
 #include "HUD/PHUD.h"
 #include "ControllerStructs.h"
+#include "ControllerHudMessages.h"
 
 #include "Buildings/Building.h"
 #include "Buildings/Organic/Barracks.h"
@@ -51,7 +52,7 @@ APController::APController() {
 void APController::BeginPlay() {
 	Super::BeginPlay();
 	Hudptr = Cast<APHUD>(GetHUD()); // Hud ptr
-
+	HudMessage = NewObject<UControllerHudMessages>();
 	resources = NewObject<UAll>();
 
 	resources->AffectResourceCounter(EResources::R_Lumber, 20, true);
@@ -59,6 +60,8 @@ void APController::BeginPlay() {
 	resources->AffectResourceCounter(EResources::R_Bread, 20, true);
 	resources->AffectResourceCounter(EResources::R_Iron, 20, true);
 	resources->AffectResourceCounter(EResources::R_Planks, 10, true);
+	resources->AffectResourceCounter(EResources::R_CopperOre, 5, true);
+	resources->AffectResourceCounter(EResources::R_IronOre, 5, true);
 
 	//grab initial units and assign them this controller
 	for (TActorIterator<AUnits> ActorItr(GetWorld()); ActorItr; ++ActorItr)
@@ -151,6 +154,15 @@ void APController::DebugFunctionOne() {
 float APController::GetResourceCount(TEnumAsByte<EResources::All> resource) {
 	return resources->GetResourceCount(resource);
 }
+float APController::GetResourceCountCombine2(TEnumAsByte<EResources::All> resource, TEnumAsByte<EResources::All> resource2) {
+	return (resources->GetResourceCount(resource) + resources->GetResourceCount(resource2));
+}
+float APController::GetResourceCountCombine3(TEnumAsByte<EResources::All> resource, TEnumAsByte<EResources::All> resource2, TEnumAsByte<EResources::All> resource3) {
+	return (resources->GetResourceCount(resource) + resources->GetResourceCount(resource2) + resources->GetResourceCount(resource3));
+}
+float APController::GetResourceCountCombine4(TEnumAsByte<EResources::All> resource, TEnumAsByte<EResources::All> resource2, TEnumAsByte<EResources::All> resource3, TEnumAsByte<EResources::All> resource4) {
+	return (resources->GetResourceCount(resource) + resources->GetResourceCount(resource2) + resources->GetResourceCount(resource3) + resources->GetResourceCount(resource4));
+}
 
 void APController::AffectResourceCount(TEnumAsByte<EResources::All> resource, float amount, bool IsAdd) {
 	resources->AffectResourceCounter(resource, amount, IsAdd);
@@ -168,9 +180,16 @@ void APController::BeginPlaceBuilding(TEnumAsByte<EAvailableBuildings::EAvailabl
 	}
 	
 	BuildingToPlace = NewObject<ABuilding>()->FindOrSpawnBuilding(EBuilding, true, this->GetWorld()); // FindOrSpawnBuilding(EBuilding, true); // find
+	if (BuildingToPlace == nullptr) {
+		Debug("Building returned Null");
+		return;
+	}
+
 	BuildingToPlace->SetPlayerController(this);
-	
-	if (BuildingToPlace == nullptr || !CanBuyBuilding(BuildingToPlace) || !BuildingToPlace->SpecialSpawnConditionsMet() || !HasResearchForBuilding(BuildingToPlace)) return; // found no building or can not afford or adheres to special rules
+
+	if (!CanBuyBuilding(BuildingToPlace) || !BuildingToPlace->SpecialSpawnConditionsMet() 
+		|| !HasResearchForBuilding(BuildingToPlace)	|| !HasBuildingsForThisBuilding(BuildingToPlace)
+		) return; // found no building or can not afford or adheres to special rules
 
 	BuildingToPlace = BuildingToPlace->FindOrSpawnBuilding(EBuilding, false, GetWorld()); // spawn
 	BuildingToPlace->SetPlayerController(this);
@@ -180,7 +199,13 @@ void APController::BeginPlaceBuilding(TEnumAsByte<EAvailableBuildings::EAvailabl
 }
 
 bool APController::CanBuyBuilding(ABuilding* building) {
-	return resources->CanAffordResourceList(building->GetBuildCost());
+	if (resources->CanAffordResourceList(building->GetBuildCost()))
+		return true;
+	else {
+		Debug("Cannot Afford To build " + building->BuildingName);
+		ShowHudMessage("Cannot Afford To build " + building->BuildingName);
+		return false;
+	}
 }
 
 bool APController::HasResearchForBuilding(ABuilding* building) {
@@ -196,10 +221,36 @@ bool APController::HasResearchForBuilding(ABuilding* building) {
 		}
 
 		if (!hasThisResearch) {
-			Debug("Can not build " + building->BuildingName + " as you dont have the research " + building->ResearchCost[i]->GetResearchName());
+			ShowHudMessage("Can not build " + building->BuildingName + " as you dont have the research " + building->ResearchCost[i]->GetResearchName());
 			return false;
 		}
 	}
+	return true;
+}
+
+bool APController::HasBuildingsForThisBuilding(ABuilding* building) {
+	
+
+
+	if (building->GetNeededBuildingList().Num() == 0) return true;
+
+	for (int32 i = 0; i < building->GetNeededBuildingList().Num(); i++) {
+		Debug(building->GetNeededBuildingList()[i]);
+		bool hasBuilding = false;
+
+		for (int32 x = 0; x < OwnedBuildings.Num(); x++) {
+			ABuilding* thisBuilding = Cast<ABuilding>(OwnedBuildings[x]);
+			if (thisBuilding->BuildingName == building->GetNeededBuildingList()[i]) {
+				hasBuilding = true;
+			}
+		}
+
+		if (!hasBuilding) {
+			ShowHudMessage("Can not build this building, you do not have " + building->GetNeededBuildingList()[i]);
+			return false;
+		}
+	}
+
 	return true;
 }
 
@@ -352,6 +403,26 @@ bool APController::GetHasSelectedEntity() {
 
 void APController::SetHasSelectedEntity(bool val) {
 	HasSelectedEntity = val;
+}
+
+void APController::ShowHudMessage(FString message) {
+	HudMessage->ShowMessage(message);
+}
+
+bool APController::GetShowHudMessage() {
+	return HudMessage->bShowMessage;
+}
+
+bool APController::GetCurrentlyShowingHudMessage() {
+	return HudMessage->bCurrentlyShowingMessage;
+}
+
+void APController::SetShowHudMessage(bool val) {
+	HudMessage->bShowMessage = val;
+}
+
+FString APController::GetShowHudMessageText() {
+	return HudMessage->Message;
 }
 
 #pragma endregion

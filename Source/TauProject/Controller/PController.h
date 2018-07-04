@@ -11,6 +11,7 @@
 #include "Resources/Resource.h"
 #include "Utils/DetailsStringLibrary.h"
 #include "Buildings/Researcher.h"
+#include "ControllerHudMessages.h"
 #include "PController.generated.h"
 UCLASS()
 class TAUPROJECT_API APController : public APlayerController
@@ -57,6 +58,26 @@ public:
 	TEnumAsByte<EWidgets::EWidgetToShow> GetWidgetToShow();
 	#pragma endregion
 
+	#pragma region Widget Messages
+
+	UPROPERTY()
+		UControllerHudMessages* HudMessage;
+
+	void ShowHudMessage(FString message);
+
+	UFUNCTION(BlueprintCallable)
+		bool GetShowHudMessage();
+
+	UFUNCTION(BlueprintCallable)
+		void SetShowHudMessage(bool val);
+
+	UFUNCTION(BlueprintCallable)
+		bool GetCurrentlyShowingHudMessage();
+
+	UFUNCTION(BlueprintCallable)
+		FString GetShowHudMessageText();
+	#pragma endregion
+
 	#pragma region Resources
 
 	UPROPERTY()
@@ -64,7 +85,12 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	float GetResourceCount(TEnumAsByte<EResources::All> resource);
-
+	UFUNCTION(BlueprintCallable)
+	float GetResourceCountCombine2(TEnumAsByte<EResources::All> resource, TEnumAsByte<EResources::All> resource2);
+	UFUNCTION(BlueprintCallable)
+	float GetResourceCountCombine3(TEnumAsByte<EResources::All> resource, TEnumAsByte<EResources::All> resource2, TEnumAsByte<EResources::All> resource3);
+	UFUNCTION(BlueprintCallable)
+	float GetResourceCountCombine4(TEnumAsByte<EResources::All> resource, TEnumAsByte<EResources::All> resource2, TEnumAsByte<EResources::All> resource3, TEnumAsByte<EResources::All> resource4);
 	void AffectResourceCount(TEnumAsByte<EResources::All> resource, float amount, bool IsAdd);
 	
 	#pragma endregion
@@ -87,6 +113,8 @@ public:
 	bool CanBuyBuilding(ABuilding* building);
 
 	bool HasResearchForBuilding(ABuilding* building);
+
+	bool HasBuildingsForThisBuilding(ABuilding* building);
 
 	void KeepBuildingAtMouse();
 

@@ -106,6 +106,13 @@ public:
 		TArray<UResearcher*> ResearchCost;
 
 	void SetResearchCosts(TArray<UResearcher*> costList);
+
+	UPROPERTY()
+		TArray<FString> NeededBuildingList;
+
+	void SetNeededBuildingList(TArray<FString> name);
+
+	TArray<FString> GetNeededBuildingList();
 	#pragma endregion
 
 	#pragma region Spawning
@@ -135,6 +142,9 @@ public:
 
 	UFUNCTION()
 		void EndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION(BlueprintCallable)
+		bool GetIsConstructed();
 
 
 	void SetBuildingAsPlaced();

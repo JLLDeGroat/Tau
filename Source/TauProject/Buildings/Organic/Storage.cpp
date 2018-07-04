@@ -66,13 +66,12 @@ AStorage::AStorage()
 	MaxHealth = 350;
 
 	BuildingName = "Storage";
+	Description = "Harvesting units can drop resources off at this location and will add to your vegville, pro tip: put near resources...";
 
-	//costlist
-	TArray<UResourceCost*> costList;
-	costList.Add(NewObject<UResourceCost>()->Setup(EResources::R_Lumber, 4));
-	costList.Add(NewObject<UResourceCost>()->Setup(EResources::R_Stone, 2));
-	SetBuildCosts(costList);
-
+	
+	SetupResearchItems();
+	SetupBuildingNeedsItem();
+	SetupBuildCosts();
 }
 
 // Called when the game starts or when spawned
@@ -88,3 +87,15 @@ void AStorage::Tick(float DeltaTime)
 }
 
 
+void AStorage::SetupResearchItems() {
+	//no research for storage
+}
+void AStorage::SetupBuildingNeedsItem() {
+	//no buildings needed
+}
+void AStorage::SetupBuildCosts() {
+	TArray<UResourceCost*> costList;
+	costList.Add(NewObject<UResourceCost>()->Setup(EResources::R_Lumber, 4));
+	costList.Add(NewObject<UResourceCost>()->Setup(EResources::R_Stone, 2));
+	SetBuildCosts(costList);
+}
