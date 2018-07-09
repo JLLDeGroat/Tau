@@ -26,4 +26,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Object")
 		static bool IsNullActor(AActor* actor);
 	
+
+	UFUNCTION(BlueprintCallable, Category = "floats")
+		float FloorFloat(float flt);
+
+	UFUNCTION(BlueprintCallable, Category = "floats")
+		FString FloatToStringWithDecimal(float flt);
+
 };

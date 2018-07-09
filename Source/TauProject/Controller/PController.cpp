@@ -13,6 +13,8 @@
 #include "HUD/PHUD.h"
 #include "ControllerStructs.h"
 #include "ControllerHudMessages.h"
+#include "MarketHistory.h"
+#include "MarketPlace/MarketItem.h"
 
 #include "Buildings/Building.h"
 #include "Buildings/Organic/Barracks.h"
@@ -37,15 +39,15 @@
 
 #include "Utils/DetailsStringLibrary.h"
 
+#include "Utils/MarketTask.h"
+
 #pragma region Basic
 
 APController::APController() {
 	bShowMouseCursor = true;
 	bEnableClickEvents = true;
-	bEnableTouchEvents = true;	
-	
-	//basic
-	
+	bEnableTouchEvents = true;		
+	//basic	
 }
 
 // GET HUD
@@ -54,12 +56,13 @@ void APController::BeginPlay() {
 	Hudptr = Cast<APHUD>(GetHUD()); // Hud ptr
 	HudMessage = NewObject<UControllerHudMessages>();
 	resources = NewObject<UAll>();
+	marketHistory = NewObject<UMarketHistory>();
 
 	resources->AffectResourceCounter(EResources::R_Lumber, 20, true);
 	resources->AffectResourceCounter(EResources::R_Stone, 20, true);
 	resources->AffectResourceCounter(EResources::R_Bread, 20, true);
 	resources->AffectResourceCounter(EResources::R_Iron, 20, true);
-	resources->AffectResourceCounter(EResources::R_Planks, 10, true);
+	resources->AffectResourceCounter(EResources::R_Planks, 15, true);
 	resources->AffectResourceCounter(EResources::R_CopperOre, 5, true);
 	resources->AffectResourceCounter(EResources::R_IronOre, 5, true);
 
@@ -70,7 +73,6 @@ void APController::BeginPlay() {
 		AUnits* unit = *ActorItr;
 		if (unit->GetUnitOwner() == EUnitOwnerships::UO_Player) unit->SetController(this);
 	}
-
 	ActivityLibrary = NewObject<UDetailsStringLibrary>();
 }
 
@@ -81,6 +83,8 @@ void APController::Tick(float DeltaTime) {
 	if (IsPlacingBuilding) KeepBuildingAtMouse();
 
 	DetermineSelectedUnit();
+
+	UpdateMarket(DeltaTime);
 }
 
 #pragma endregion
@@ -166,6 +170,14 @@ float APController::GetResourceCountCombine4(TEnumAsByte<EResources::All> resour
 
 void APController::AffectResourceCount(TEnumAsByte<EResources::All> resource, float amount, bool IsAdd) {
 	resources->AffectResourceCounter(resource, amount, IsAdd);
+}
+
+TArray<FString> APController::GetAllResourceNamesAsString() {
+	return resources->GetAllResourceNamesAsString();
+}
+
+TEnumAsByte<EResources::All> APController::GetResourceFromString(FString name) {
+	return resources->GetResourceFromString(name);
 }
 
 #pragma endregion 
@@ -302,14 +314,15 @@ void APController::PlaceBuilding() {
 	//UpdateOwnedBuildings();
 }
 
-void APController::AddToOwnedBuildings(AActor* actor) {
+void APController::AddToOwnedBuildings(ABuilding* actor) {
 	for (int32 i = 0; i < OwnedBuildings.Num(); i++) {
 		if (actor == OwnedBuildings[i]) return;
 	}
+	if (actor->BuildingName == "Market Place") GenerateMarket();
 	OwnedBuildings.Add(actor);
 }
 
-void APController::RemoveFromOwnedBuildings(AActor* actor) {
+void APController::RemoveFromOwnedBuildings(ABuilding* actor) {
 	for (int32 i = 0; i < OwnedBuildings.Num(); i++) {
 		if (actor == OwnedBuildings[i]) {
 			OwnedBuildings.RemoveAt(i);
@@ -497,6 +510,88 @@ void APController::AddListToResearchList(TArray<UResearcher*> researchList) {
 
 #pragma endregion
 
+#pragma region Market Management
+
+UMarketHistory* APController::GetMarketHistoryObject() {
+	return marketHistory;
+}
+void APController::TestMarketThread() {
+	if (!bIsMarketGenerated) {
+		(new FAutoDeleteAsyncTask<MarketTask>(this, marketHistory, resources, true))->StartBackgroundTask();
+		bIsMarketGenerated = true;
+	}
+}
+
+void APController::GenerateMarket() {
+	if (!bIsMarketGenerated) {
+		(new FAutoDeleteAsyncTask<MarketTask>(this, marketHistory, resources, true))->StartBackgroundTask();
+		bIsMarketGenerated = true;
+		Debug("Market Place generated");
+	}
+}
+
+void APController::UpdateMarket(float DeltaTime) {
+	MarketUpdateCountDown += DeltaTime;
+
+	if (MarketUpdateCountDown > 60) {
+		(new FAutoDeleteAsyncTask<MarketTask>(this, marketHistory, resources, false))->StartBackgroundTask();
+		MarketUpdateCountDown = 0;
+		Debug("Market Updated");
+	}
+}
+
+UObject* APController::GetMarketItem(FString resFrom, FString resTo) {
+	for (int32 i = 0; i < marketHistory->MarketItems.Num(); i++) {
+		UObject* object = marketHistory->MarketItems[i];
+		if (UMarketItem* item = Cast<UMarketItem>(object)) {
+			if (item->GetResFrom() == resFrom && item->GetResTo() == resTo) return item;
+		}		
+	}
+	Debug("Found No Market Item");
+	return nullptr;
+}
+
+float APController::GetResourceFromAmountFromSlider(float sliderVal, FString resourceFromName) {
+	return resources->GetResourceCount(GetResourceFromString(resourceFromName)) * sliderVal;
+}
+
+float APController::GetResourceToAmountFromConversionRate(float resourceFromAmount, float conversionRate) {
+	return resourceFromAmount * conversionRate;
+}
+
+float APController::GetMarketAmountToTrade(float newVal, FString resourceFromName) {
+	return resources->GetResourceCount(GetResourceFromString(resourceFromName)) * newVal;
+}
+
+float APController::GetMarketAmountToGet(float newVal, FString resourceFromName, float conversionRate) {
+	float amount = resources->GetResourceCount(GetResourceFromString(resourceFromName)) * newVal;
+	float result = amount * conversionRate;
+	return result;
+}
+
+void APController::TradeExecuted(FString resFrom, FString resTo, float conversionRate, float amount) {
+
+	EResources::All resourceFromType = resources->GetResourceFromString(resFrom);
+	EResources::All resourceToType = resources->GetResourceFromString(resTo);
+
+	if (resources->CanAffordResourceItem(NewObject<UResourceCost>()->Setup(resourceFromType, amount))) {
+		resources->AffectResourceCounter(resourceFromType, amount, false);
+		float amountToAdd = amount * conversionRate;
+		resources->AffectResourceCounter(resourceToType, amountToAdd, true);
+
+		UMarketItem* item = Cast<UMarketItem>(GetMarketItem(resFrom, resTo));
+
+		item->IncrementTimesTraded();
+
+	}
+	else {
+		Debug("can not afford this trade");
+	}
+}
+
+#pragma endregion
+
 void APController::Debug(FString string) {
 	GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, string);
 }
+

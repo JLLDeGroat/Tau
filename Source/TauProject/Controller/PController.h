@@ -12,6 +12,7 @@
 #include "Utils/DetailsStringLibrary.h"
 #include "Buildings/Researcher.h"
 #include "ControllerHudMessages.h"
+#include "MarketHistory.h"
 #include "PController.generated.h"
 UCLASS()
 class TAUPROJECT_API APController : public APlayerController
@@ -76,12 +77,21 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		FString GetShowHudMessageText();
+
+	UFUNCTION(BlueprintCallable)
+		TArray<FString> GetAllResourceNamesAsString();
+
+	UFUNCTION(BlueprintCallable)
+		TEnumAsByte<EResources::All> GetResourceFromString(FString name);
+
+
+
 	#pragma endregion
 
 	#pragma region Resources
 
 	UPROPERTY()
-	UAll* resources;
+		UAll* resources;
 
 	UFUNCTION(BlueprintCallable)
 	float GetResourceCount(TEnumAsByte<EResources::All> resource);
@@ -122,8 +132,8 @@ public:
 
 	void PlaceBuilding();
 
-	void AddToOwnedBuildings(AActor* actor);
-	void RemoveFromOwnedBuildings(AActor* actor);
+	void AddToOwnedBuildings(ABuilding* actor);
+	void RemoveFromOwnedBuildings(ABuilding* actor);
 
 	#pragma endregion
 
@@ -170,6 +180,53 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		void AddListToResearchList(TArray<UResearcher*> researchList);
+
+	#pragma endregion
+
+	#pragma region Market Managing
+
+	UPROPERTY()
+		bool bIsMarketGenerated;
+	
+	UPROPERTY()
+		UMarketHistory* marketHistory;
+
+
+	UPROPERTY()
+		float MarketUpdateCountDown;
+
+	UFUNCTION(BlueprintCallable)
+		UMarketHistory* GetMarketHistoryObject();
+
+	UFUNCTION(BlueprintCallable)
+		void TestMarketThread();
+
+	
+
+	void GenerateMarket();
+	void UpdateMarket(float DeltaTime);
+
+
+
+
+
+	UFUNCTION(BlueprintCallable)
+		float GetResourceFromAmountFromSlider(float sliderVal, FString resourceFromName);
+	UFUNCTION(BlueprintCallable)
+		float GetResourceToAmountFromConversionRate(float resourceFromAmount, float conversionRate);
+
+
+	UFUNCTION(BlueprintCallable)
+		UObject* GetMarketItem(FString resFrom, FString resTo);
+
+	UFUNCTION(BlueprintCallable)
+		void TradeExecuted(FString resFrom, FString resTo, float conversionRate, float amount);
+
+	UFUNCTION(BlueprintCallable)
+		float GetMarketAmountToTrade(float newVal, FString resourceFromName);
+
+	UFUNCTION(BlueprintCallable)
+		float GetMarketAmountToGet(float newVal, FString resourceFromName, float conversionRate);
 
 	#pragma endregion
 

@@ -11,10 +11,7 @@
 ABaseGameMode::ABaseGameMode() {
 	DefaultPawnClass = APPawn::StaticClass();
 	PlayerControllerClass = APController::StaticClass();
-	HUDClass = APHUD::StaticClass();
-
-
-	
+	HUDClass = APHUD::StaticClass();		
 }
 
 

@@ -56,3 +56,15 @@ namespace EResources
 		E_CopperSword				UMETA(DisplayName = "CopperSword")
 	};
 }
+
+UENUM(BlueprintType)
+namespace EResourceTier
+{
+	enum Tier {
+		T_1							UMETA(DisplayName = "Tier1"),
+		T_2							UMETA(DisplayName = "Tier2"),
+		T_3							UMETA(DisplayName = "Tier3"),
+		T_4							UMETA(DisplayName = "Tier4"),
+		T_5							UMETA(DisplayName = "Tier5")
+	};
+}

@@ -70,13 +70,19 @@ public:
 		float CopperSword;
 	#pragma endregion
 
-
+	
 	float GetResourceCount(TEnumAsByte<EResources::All> resource);	
 
 	void AffectResourceCounter(TEnumAsByte<EResources::All> resource, float amount, bool Add);
 
 	bool CanAffordResourceList(TArray<UResourceCost*> list);
+	bool CanAffordResourceItem(UResourceCost* cost);
 	void AffectResouceListOnCounter(TArray<UResourceCost*> list, bool isAdd);
+
+	TArray<FString> GetAllResourceNamesAsString();
+	TEnumAsByte<EResources::All> GetResourceFromString(FString name);
+
+	TEnumAsByte<EResourceTier::Tier> GetResourceTier(TEnumAsByte<EResources::All> resource, FString name = "");
 
 };
 

@@ -19,4 +19,10 @@ bool UBluePrintUtils::IsNullActor(AActor* actor) {
 	return actor == nullptr;
 }
 
+float UBluePrintUtils::FloorFloat(float flt) {
+	return FMath::FloorToFloat(flt);
+}
 
+FString UBluePrintUtils::FloatToStringWithDecimal(float flt) {
+	return FString::SanitizeFloat(flt, 1);
+}

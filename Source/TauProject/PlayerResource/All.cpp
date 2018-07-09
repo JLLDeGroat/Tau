@@ -177,8 +177,129 @@ bool UAll::CanAffordResourceList(TArray<UResourceCost*> list) {
 	return true;
 }
 
+bool UAll::CanAffordResourceItem(UResourceCost* cost) {
+	return GetResourceCount(cost->res) >= cost->Amount;
+}
+
 void UAll::AffectResouceListOnCounter(TArray<UResourceCost*> list, bool isAdd) {
 	for (int32 i = 0; i < list.Num(); i++) {
 		AffectResourceCounter(list[i]->res, list[i]->Amount, isAdd);
 	}
+}
+
+TArray<FString> UAll::GetAllResourceNamesAsString() {
+	TArray<FString> resourceList;
+	resourceList.Add("Lumber");
+	resourceList.Add("Stone");
+	resourceList.Add("IronOre");
+	resourceList.Add("CopperOre");
+	resourceList.Add("Coal");
+	resourceList.Add("Planks");
+	resourceList.Add("Water");
+	resourceList.Add("Bread");
+	resourceList.Add("Food");
+	resourceList.Add("Iron");
+	resourceList.Add("Copper");
+	resourceList.Add("Steel");	
+	resourceList.Add("Peatanium");
+	resourceList.Add("Alcohol");
+	resourceList.Sort();
+	return resourceList;
+}
+
+TEnumAsByte<EResources::All> UAll::GetResourceFromString(FString name) {
+	
+	if (name == "Lumber") return EResources::R_Lumber;
+	else if (name == "Stone") return EResources::R_Stone;
+	else if (name == "IronOre") return EResources::R_IronOre;
+	else if (name == "CopperOre") return EResources::R_CopperOre;
+	else if (name == "Coal") return EResources::R_Coal;
+	else if (name == "Planks") return EResources::R_Planks;
+	else if (name == "Water") return EResources::R_Water;
+	else if (name == "Wheat") return EResources::R_Wheat;
+	else if (name == "Bread") return EResources::R_Bread;
+	else if (name == "Food") return EResources::R_Food;
+	else if (name == "Iron") return EResources::R_Iron;
+	else if (name == "Copper") return EResources::R_Copper;
+	else if (name == "Steel") return EResources::R_Steel;
+	else if (name == "Peatanium") return EResources::R_Peatanium;
+	else if (name == "Alcohol") return EResources::R_Alcohol;
+	
+
+	else return EResources::R_None;
+
+
+}
+
+TEnumAsByte<EResourceTier::Tier> UAll::GetResourceTier(TEnumAsByte<EResources::All> resource, FString name) {
+	if (name != "") {
+		resource = GetResourceFromString(name);
+	}
+
+
+	switch (resource) {
+	case EResources::R_IronOre:
+		return EResourceTier::T_1;
+	
+	case EResources::R_CopperOre:
+		return EResourceTier::T_1;
+
+	case EResources::R_Stone:
+		return EResourceTier::T_1;
+
+	case EResources::R_Lumber:
+		return EResourceTier::T_1;
+
+	case EResources::R_Wheat:
+		return EResourceTier::T_1;
+
+	case EResources::R_Coal:
+		return EResourceTier::T_1;
+
+	case EResources::R_Water:
+		return EResourceTier::T_1;
+
+		
+		//advance
+
+	case EResources::R_Copper:
+		return EResourceTier::T_2;
+
+	case EResources::R_Iron:
+		return EResourceTier::T_2;
+
+	case EResources::R_Alcohol:
+		return EResourceTier::T_2;
+
+	case EResources::R_Bread:
+		return EResourceTier::T_2;
+
+	case EResources::R_Steel:
+		return EResourceTier::T_2;
+
+	case EResources::R_Planks:
+		return EResourceTier::T_2;
+
+		//elite
+
+	case EResources::R_Peatanium:
+		return EResourceTier::T_5;
+
+		//equip
+
+	case EResources::E_IronSword:
+		return EResourceTier::T_4;
+
+	case EResources::E_CopperSword:
+		return EResourceTier::T_4;
+
+	case EResources::E_SteelSword:
+		return EResourceTier::T_4;
+
+
+	default:
+		return EResourceTier::T_1;
+	}
+
+
 }

@@ -62,13 +62,11 @@ AMarketPlace::AMarketPlace() {
 	BuildingName = "Market Place";
 	Description = "Peas will trade there arm n legs here for resources and arms and legs.";
 	Health = 1;
-	MaxHealth = 1200;
+	MaxHealth = 12;
 
 	IsPlaced = false;
 
 	BuildingType = EAvailableBuildings::B_MarketPlace;
-
-
 	
 
 	//setting research	
