@@ -9,6 +9,22 @@
 /**
  * 
  */
+
+UENUM(BlueprintType)
+namespace EResearchList
+{
+	enum  EResearhables
+	{
+		R_OreRefinery					UMETA(DisplayName = "Ore Refinery"),
+		R_Harveting						UMETA(DisplayName = "Harvesting"),
+		R_CopperForge					UMETA(DisplayName = "Copper Forge"),
+		R_IronForge						UMETA(DisplayName = "Iron Forge"),
+	};
+}
+
+
+
+
 UCLASS()
 class TAUPROJECT_API UResearcher : public UObject
 {
@@ -17,6 +33,8 @@ class TAUPROJECT_API UResearcher : public UObject
 
 public:
 	UResearcher(FString name, FString desc, TArray<UResourceCost*> costList, float researchTime);
+
+	UResearcher* Setup(FString name, FString desc, float researchTime, float childVersions, TEnumAsByte<EResearchList::EResearhables> researchEnum, TArray<UResourceCost*> costList);
 
 
 	UPROPERTY()
@@ -27,6 +45,9 @@ public:
 
 	UPROPERTY()
 		TArray<UResourceCost*> ResearchCost;
+
+	UPROPERTY()
+		TEnumAsByte<EResearchList::EResearhables> ResearchType;
 	
 	UPROPERTY()
 		float CurrentResearchTime;
@@ -34,6 +55,8 @@ public:
 	UPROPERTY()
 		float ResearchTime;
 
+	UPROPERTY()
+		float ChildrenVersions;
 
 	UPROPERTY()
 		bool HasStarted;

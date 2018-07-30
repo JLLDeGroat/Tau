@@ -1,5 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #pragma once
+#include "Runtime/Engine/Classes/Materials/Material.h"
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "UnitStructs.h"
@@ -8,7 +9,13 @@
 #include "Units/UnitTasks.h"
 #include "Units/UnitInventory.h"
 #include "PlayerResource/ResourceCost.h"
+#include "Runtime/Engine/Classes/Components/DecalComponent.h"
+#include "Weapons/Weapon.h"
 #include "Units.generated.h"
+
+
+
+
 UCLASS()
 class TAUPROJECT_API AUnits : public ACharacter
 {
@@ -25,6 +32,24 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	#pragma region visuals
+	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+		USkeletalMeshComponent* CurrentMesh;
+	
+	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+		UDecalComponent* selectedDecal;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+		UMaterial* selectedDecalMaterial;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+		UDecalComponent* highlightedDecal;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
+		UMaterial* highlightedDecalMaterial;
+
+	#pragma endregion
 
 	#pragma region Basic Properties
 
@@ -56,6 +81,9 @@ public:
 		FString GetBuildCostAsUIString();
 
 	void SetDescription(FString desc);
+
+	UPROPERTY()
+		bool bIsHighlighted;
 	#pragma endregion
 
 
@@ -77,6 +105,12 @@ public:
 
 	UPROPERTY()
 		UUnitTasks* UnitTask;
+
+	void HideDecals();
+	void ShowDecals();
+
+	void ShowHighlighDecals();
+	void HideHighlightDecails();
 		
 	#pragma endregion
 
@@ -138,9 +172,15 @@ public:
 	void DropResourcesOff();
 
 	void AttemptToFindAnotherResourceOfType(AActor* res);
+
+	UFUNCTION(BlueprintCallable)
+		bool GetIsHarvesting();
 	#pragma endregion
 
 	#pragma region Combat 
+
+	UPROPERTY()
+		AWeapon* rArmWeapon;
 
 	UPROPERTY(EditAnywhere, Category = GlobalUnit)
 		float LineOfSight;
@@ -179,6 +219,9 @@ public:
 	UPROPERTY()
 		bool bIsAttacking;
 
+	UFUNCTION(BlueprintCallable)
+		bool GetIsAttacking();
+
 	UPROPERTY()
 		AActor* AttackingUnit;
 
@@ -203,6 +246,19 @@ public:
 	void AttemptToFindNewAttackTarget();
 	#pragma endregion
 
+	#pragma region Combar Armaments
+
+	UPROPERTY()
+		bool bIsArmed;
+
+	UPROPERTY()
+		TEnumAsByte<EUnitCombatType::ArmamentType> CombatType;
+
+	
+
+
+	#pragma endregion
+	
 	#pragma region Util
 	void LookAt(AActor* actor);
 
@@ -243,6 +299,10 @@ public:
 
 	UFUNCTION()
 		void OutOfRangeOfAttack(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+	#pragma endregion
+
+	#pragma region Unit Death
+	void KillUnit();
 	#pragma endregion
 
 	void Debug(FString message);

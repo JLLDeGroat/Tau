@@ -2,6 +2,10 @@
 
 #include "Resource.h"
 #include "Units/UnitStructs.h"
+#include "Components/StaticMeshComponent.h"
+#include "ResourceHelpers.h"
+#include "ConstructorHelpers.h"
+#include "ResourceHelpers.h"
 #include "PlayerResource/EResource.h"
 
 // Sets default values
@@ -10,6 +14,14 @@ AResource::AResource()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
+	resourceMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ResourceBody"));
+	resourceMesh->SetupAttachment(RootComponent);
+	resourceMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
+	resourceMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+
+	/*
+	resourceMesh->bGenerateOverlapEvents = true;
+	*/
 }
 
 // Called when the game starts or when spawned
@@ -17,6 +29,8 @@ void AResource::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	UResourceHelpers::SetResourceMinMaxAmount(this);
+	UResourceHelpers::SetInitialResourceAmount(this);	
 }
 
 // Called every frame
@@ -36,12 +50,6 @@ TEnumAsByte<EResources::All> AResource::GetResourceType() {
 	return ResourceType;
 }
 
-float AResource::SetInitialResources(TEnumAsByte<EResources::All> resource) {
-	float count = FMath::RandRange(100, 501);
-	this->ResourceCountOriginal = count;
-	return count;
-}
-
 #pragma endregion
 
 #pragma region Setters
@@ -59,15 +67,10 @@ float AResource::RemoveAmountFromCount(float amount) {
 		amount = GetCurrentResourceCount();
 	}
 	ResourceCount -= amount;
-	AfterRemovedChecks();
-	return amount;
-}
+	
+	UResourceHelpers::CheckIfDepleted(this);
 
-void AResource::AfterRemovedChecks() {
-	if (ResourceCount <= 0) {
-		SetIsDepleted();
-		this->Destroy();
-	}
+	return amount;
 }
 
 

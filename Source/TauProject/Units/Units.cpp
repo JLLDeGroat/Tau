@@ -1,29 +1,40 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "Units.h"
+#include "ConstructorHelpers.h"
+#include "Runtime/Engine/Classes/Materials/Material.h"
 #include "AI/Navigation/NavigationSystem.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Components/DecalComponent.h"
 #include "Components/SphereComponent.h"
+#include "Runtime/Engine/Classes/Materials/MaterialInstanceDynamic.h"
+#include "Runtime/Engine/Classes/Animation/AnimInstance.h"
 #include "UnitTasks.h"
 #include "Buildings/Building.h"
 #include "Resources/Resource.h"
 #include "Controller/PController.h"
 #include "Engine/Engine.h"
 #include "EngineUtils.h"
+#include "Components/SkeletalMeshComponent.h"
 
 #include "PlayerResource/ResourceCost.h"
-
 #include "Units/Organic/Corn.h"
 #include "Units/Organic/Pea.h"
 #include "Units/Organic/Sprout.h"
 
+#include "Weapons/Weapon.h"
+#include "Weapons/Swords/BasicSword.h"
+
+#include "ArmUnits.h"
+
 // Sets default values
 AUnits::AUnits()
-{	
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+{
+	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	//Unit Sight Component
-	SightSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Unit Sight"));	
+	SightSphere = CreateDefaultSubobject<USphereComponent>(TEXT("Unit Sight"));
 	SightSphere->SetupAttachment(RootComponent);
 	SightSphere->bGenerateOverlapEvents = true;
 
@@ -37,22 +48,72 @@ AUnits::AUnits()
 
 	RangeSphere->OnComponentBeginOverlap.AddDynamic(this, &AUnits::WithinRangeOfAttack);
 	RangeSphere->OnComponentEndOverlap.AddDynamic(this, &AUnits::OutOfRangeOfAttack);
-	
+
 	SetActorTickEnabled(true);
 	SetActorTickInterval(1);
 
-	LineOfSight = 220;
-	AttackRange = 170;
+	selectedDecal = CreateDefaultSubobject<UDecalComponent>(TEXT("SelectDecal"));
+	selectedDecal->SetWorldScale3D(FVector(.5));
+	selectedDecal->SetRelativeRotation(FRotator(90, 0, 0));
+	selectedDecal->SetupAttachment(RootComponent);
+	selectedDecal->SetVisibility(false); 	//as default
+
+	highlightedDecal = CreateDefaultSubobject<UDecalComponent>(TEXT("HighlightDecal"));
+	highlightedDecal->SetWorldScale3D(FVector(.5));
+	highlightedDecal->SetRelativeRotation(FRotator(90, 0, 0));
+	highlightedDecal->SetupAttachment(RootComponent);
+	highlightedDecal->SetVisibility(false); 	//as default
+
+
+	static ConstructorHelpers::FObjectFinder<UMaterial> decalMat(TEXT("/Game/Images/Decals/SelectedCircle.SelectedCircle"));
+	if (decalMat.Succeeded()) {
+		selectedDecalMaterial = (UMaterial*)decalMat.Object;
+		UMaterialInterface* materialInterface = UMaterialInstanceDynamic::Create(selectedDecalMaterial, selectedDecal);
+		selectedDecal->SetMaterial(0, materialInterface);
+	}
+
+	static ConstructorHelpers::FObjectFinder<UMaterial> highlightdecalMat(TEXT("/Game/Images/Decals/HighlightedCircle.HighlightedCircle"));
+	if (highlightdecalMat.Succeeded()) {
+		highlightedDecalMaterial = (UMaterial*)highlightdecalMat.Object;
+		UMaterialInterface* materialInterface = UMaterialInstanceDynamic::Create(highlightedDecalMaterial, highlightedDecal);
+		highlightedDecal->SetMaterial(0, materialInterface);
+	}
 }
 
-// Called when the game starts or when spawned
+// Called when the game starts or when spawned	
 void AUnits::BeginPlay()
 {
 	Super::BeginPlay();	
-	SightSphere->SetSphereRadius(LineOfSight);
-	RangeSphere->SetSphereRadius(AttackRange);	
+	
 
 	UnitTask = NewObject<UUnitTasks>();
+
+	//set Unit On BeginPlay
+	MaxHealth = UnitStructs::GetInitialHitPoints(ThisUnitType);
+	Health = UnitStructs::GetInitialHitPoints(ThisUnitType);
+
+	Attack = UnitStructs::GetInitialAttack(ThisUnitType);
+	CriticalChance = UnitStructs::GetInitialCritChange(ThisUnitType);
+	CriticalMultiplier = UnitStructs::GetInitialCritMultiplier(ThisUnitType);
+	SightSphere->SetSphereRadius(UnitStructs::GetInitialLineOfSight(ThisUnitType));
+	RangeSphere->SetSphereRadius(UnitStructs::GetInitialAttackRange(ThisUnitType));
+	
+	SetBuildCosts(UnitStructs::GetInitialBuildCostArray(ThisUnitType));
+
+	bIsArmed = UnitStructs::GetIsArmedUnit(ThisUnitType);
+
+	//character movement configuration for all Units spawned
+	GetCharacterMovement()->MaxWalkSpeed = UnitStructs::GetInitialWalkingSpeed(ThisUnitType);
+	 
+	//arm Unit
+	if (this->bIsArmed) {
+		//FName fnWeaponSocket = TEXT("RASocket");
+		//rArmWeapon = GetWorld()->SpawnActor<ABasicSword>();
+		//rArmWeapon->AttachToComponent(CurrentMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, fnWeaponSocket);
+		//rArmWeapon->SetActorRelativeRotation(FRotator(90, -90, 0)); // pea position for Basic Sword 	
+	}
+
+	UArmUnits::ArmSpawnedUnit(this->GetWorld(), this, CurrentMesh);	
 }
 
 // Called every frame
@@ -61,7 +122,8 @@ void AUnits::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (!this->IsDead && this->Health > 0) {
 
-		//FString string = "Ticked " + FString::SanitizeFloat(DeltaTime);
+		if (bIsHighlighted) ShowHighlighDecals();
+		else HideHighlightDecails();
 		
 		if (bIsAttacking) AttackTick();
 		if (IsBuilding) BuildBuilding();
@@ -91,13 +153,13 @@ void AUnits::OutOfSight(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 }
 
 void AUnits::WithinRangeOfAttack(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {	
-	if (OtherActor != this) {
+	if (OtherActor != this) {		
 		if (HitInstructedBuilding(OtherActor)) {
 			StartBuilding();
 		}
 			
 			
-		if(HasFoundAnEnemy(OtherActor, OtherComp)) {
+		if(HasFoundAnEnemy(OtherActor, OtherComp)) {		
 			NewEnemyHasEnteredAttackRange(OtherActor);
 
 			if (this->UnitOwner == EUnitOwnerships::UO_Player) {
@@ -160,6 +222,7 @@ void AUnits::WithinRangeOfAttack(UPrimitiveComponent* OverlappedComp, AActor* Ot
 	}
 }
 
+
 void AUnits::OutOfRangeOfAttack(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) {
 	if (this != OtherActor && Cast<AUnits>(OtherActor) && OtherComp->GetName() == "UnitBody" && Cast<AUnits>(OtherActor)->UnitOwner != this->UnitOwner) {
 		EnemyIsOutOfAttackRange(OtherActor);
@@ -184,6 +247,9 @@ float AUnits::GetHealth() {
 }
 float AUnits::GetMaxHealth() {
 	return MaxHealth;
+}
+bool AUnits::GetIsAttacking() {
+	return bIsAttacking;
 }
 
 #pragma endregion
@@ -253,6 +319,7 @@ void AUnits::ResetUnitInstructionsOnMove() {
 
 void AUnits::MoveUnitAndAttack(AActor* actor) {
 	UnitTask->CreateAndAddTask("Attack Task", GetActorLocation(), actor->GetActorLocation(), actor, EUnitInstructions::UI_Attack);
+	Debug("attacking");
 	UNavigationSystem::SimpleMoveToActor(GetController(), actor);
 }
 
@@ -272,11 +339,10 @@ void AUnits::MoveUnitAndHarvestBuilding(AActor* building) {
 }
 
 void AUnits::IsMovementInstructionComplete() {	
-	if (FVector::Dist(this->GetActorLocation(), UnitTask->GetFirstTask()->GetTargetLocation()) <= 100) 	UnitTask->RemoveFirstTask();	
+	if (FVector::Dist(this->GetActorLocation(), UnitTask->GetFirstTask()->GetTargetLocation()) <= 150) 	UnitTask->RemoveFirstTask();	
 }
 
 void AUnits::IsAttackInstructionComplete() {
-
 	if (AUnits* targetActor = Cast<AUnits>(UnitTask->GetFirstTask()->GetTargetActor())) {
 		if (targetActor->IsDead || targetActor->Health <= 0) {
 			UnitTask->RemoveFirstTask();
@@ -287,6 +353,10 @@ void AUnits::IsAttackInstructionComplete() {
 				UnitTask->CreateAndAddTaskAUTO("auto attack new enemy", this->GetActorLocation(), UnitsWithinRange[0]->GetActorLocation(), UnitsWithinRange[0], EUnitInstructions::UI_Attack);
 			}
 		}
+		else {
+			this->GetController()->StopMovement();
+			LookAt(targetActor);
+		}
 	}
 
 	// check if target died,
@@ -296,6 +366,7 @@ void AUnits::IsAttackInstructionComplete() {
 	for (int32 i = 0; i < UnitsWithinRange.Num(); i++) {
 		if (UnitTask->HasTask() && UnitsWithinRange[i] == UnitTask[i].GetFirstTask()->GetTargetActor()) {
 			StartAttacking(UnitTask[i].GetFirstTask()->GetTargetActor());
+			LookAt(UnitTask[i].GetFirstTask()->GetTargetActor());
 			return; // finished and will attack
 		}
 	}
@@ -315,6 +386,30 @@ void AUnits::AttemptToGetAutoTask() {
 			}
 		}
 	}
+	if (!CanBuild && CanHarvest) {
+		// attempt to find a resource actor to harvest :D
+	}
+	if (CanBuild) {
+		// attempt to find broken building/ damaged building to repair
+	}
+}
+
+void AUnits::HideDecals() {
+	UDecalComponent* decal = this->FindComponentByClass<UDecalComponent>();
+	decal->SetVisibility(false);
+}
+
+void AUnits::ShowDecals() {
+	UDecalComponent* decal = this->FindComponentByClass<UDecalComponent>();
+	decal->SetVisibility(true);
+}
+
+void AUnits::ShowHighlighDecals() {
+	if (!highlightedDecal->bVisible) highlightedDecal->SetVisibility(true);
+}
+
+void AUnits::HideHighlightDecails() {
+	if (highlightedDecal->bVisible) highlightedDecal->SetVisibility(false);
 }
 
 #pragma endregion
@@ -361,7 +456,7 @@ void AUnits::StopAttacking() {
 void AUnits::AttackTick() {
 	Debug("Attacking");
 	AUnits* enemy = Cast<AUnits>(UnitTask->GetFirstTask()->GetTargetActor());
-
+	
 	if (enemy->Health > 0) {
 		int32 i = FMath::RandRange(0, 100);
 
@@ -372,7 +467,7 @@ void AUnits::AttackTick() {
 		GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, FString::SanitizeFloat(enemy->Health));
 		if (enemy->Health <= 0) {
 			UnitTask->RemoveFirstTask();
-			enemy->Destroy();
+			enemy->KillUnit();
 			enemy->SetIsDead();
 			AttemptToFindNewAttackTarget();
 		}
@@ -451,6 +546,8 @@ bool AUnits::HasNoTaskAndFoundResourceToHarvest(AActor* actor) {
 }
 
 void AUnits::HarvestTick() {
+	
+
 	float AmountHarvested = HarvestRate;
 	float SpaceRemaining = (Inventory->GetMaxResourceCount() - Inventory->GetCurrentResourceCount());
 	if (SpaceRemaining == 0) {
@@ -461,6 +558,7 @@ void AUnits::HarvestTick() {
 	}
 
 	if (AResource* resource = Cast<AResource>(HarvestingActor)) {
+		LookAt(HarvestingActor);
 		if (resource->IsDepleted) {
 			IsHarvesting = false;
 
@@ -496,6 +594,7 @@ void AUnits::HarvestTick() {
 	}
 
 	if (ABuilding* building = Cast<ABuilding>(HarvestingActor)) {
+		LookAt(HarvestingActor);
 		if (building->GetIsDepletableResourceDepleted()) {
 			IsHarvesting = false;
 
@@ -585,6 +684,7 @@ void AUnits::AttemptToFindAnotherResourceOfType(AActor* res) {
 	TArray<AResource*> resourcesFound;
 
 	bool resourceFound = false;
+
 	float distancetoResource = -1;
 
 	AResource* closestResource = nullptr;
@@ -618,6 +718,10 @@ void AUnits::AttemptToFindAnotherResourceOfType(AActor* res) {
 	}
 }
 
+bool AUnits::GetIsHarvesting() {
+	return IsHarvesting;
+}
+
 #pragma endregion
 
 #pragma region Build Costs and Upgrade
@@ -642,7 +746,7 @@ void AUnits::SetBuildCosts(TArray<UResourceCost*> buildCost) {
 void AUnits::LookAt(AActor* actor) {
 	FRotator CurrentRotation = GetActorRotation();
 
-	Debug(FString::SanitizeFloat(CurrentRotation.Pitch) + ": is the current pitch of this unit as it looks at " + actor->GetName());
+	//Debug(FString::SanitizeFloat(CurrentRotation.Pitch) + ": is the current pitch of this unit as it looks at " + actor->GetName());
 
 	FRotator PlayerRot = FRotationMatrix::MakeFromX(this->GetActorLocation() - actor->GetActorLocation()).Rotator();
 	PlayerRot.Pitch = CurrentRotation.Pitch; // reset the pitch, units should not look up or down?
@@ -690,12 +794,10 @@ AUnits* AUnits::SpawnUnitOfType(TEnumAsByte<EUnitList::All> unit, FVector spawnL
 	SpawnInfo.bNoFail = false;
 	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 	
-
 	switch (unit) {
 
 	case EUnitList::UL_None:
 		return nullptr;
-
 
 	case EUnitList::UL_Corn:		
 		return 
@@ -713,6 +815,18 @@ AUnits* AUnits::SpawnUnitOfType(TEnumAsByte<EUnitList::All> unit, FVector spawnL
 }
 
 #pragma endregion
+
+
+#pragma region Destroy Actor
+
+void AUnits::KillUnit() {
+	if (bIsArmed) rArmWeapon->Destroy();
+
+	this->Destroy();
+}
+
+#pragma endregion
+
 
 void AUnits::Debug(FString message) {
 	GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, message);

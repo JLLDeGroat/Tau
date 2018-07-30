@@ -12,8 +12,6 @@
 
 
 AMarketPlace::AMarketPlace() {
-	Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BuildingBody"));
-	Box->SetupAttachment(RootComponent);
 
 	//StaticMesh'/Game/Models/Debug/BasicHouse_UB.BasicHouse_UB'
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BoxAsset(TEXT("/Game/Models/Debug/PhylosopherRoom.PhylosopherRoom"));
@@ -59,20 +57,10 @@ AMarketPlace::AMarketPlace() {
 	Box->OnComponentBeginOverlap.AddDynamic(this, &AMarketPlace::StartOverlap);
 	Box->OnComponentEndOverlap.AddDynamic(this, &AMarketPlace::EndOverlap);
 
-	BuildingName = "Market Place";
-	Description = "Peas will trade there arm n legs here for resources and arms and legs.";
-	Health = 1;
-	MaxHealth = 12;
-
+	
 	IsPlaced = false;
 
 	BuildingType = EAvailableBuildings::B_MarketPlace;
-	
-
-	//setting research	
-	SetupResearchItems();
-	SetupBuildingNeedsItem();
-	SetupBuildCosts();
 }
 
 
@@ -88,19 +76,6 @@ void AMarketPlace::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-
-void AMarketPlace::SetupResearchItems() {
-
-}
-void AMarketPlace::SetupBuildingNeedsItem() {
-
-}
-void AMarketPlace::SetupBuildCosts() {
-	TArray<UResourceCost*> resCost;
-	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Planks, 15));
-	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Stone, 15));
-	SetBuildCosts(resCost);
-}
 
 
 

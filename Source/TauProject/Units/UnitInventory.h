@@ -27,6 +27,13 @@ public:
 
 	UPROPERTY()
 		TEnumAsByte<EResources::All> ResourceType;
+
+	UPROPERTY()
+		TEnumAsByte<EUnitRightArm::Armaments> RightArm;
+	UPROPERTY()
+		TEnumAsByte<EUnitLeftArm::Armaments> LeftArm;
+	UPROPERTY()
+		TEnumAsByte<EUnitTwoHanded::Armaments> TwoHanded;
 	
 
 	bool CanAddResourcetoCount(TEnumAsByte<EResources::All> resource, float amount);
@@ -36,7 +43,6 @@ public:
 	bool CanFitInInventory(float amount);
 
 	bool IsInventoryFull();
-
 	
 	#pragma region Getters & Setters
 

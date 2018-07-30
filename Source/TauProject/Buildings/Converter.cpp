@@ -60,8 +60,20 @@ void UConverter::SetConverterFromItem(UResourceCost* item) {
 	ConvertsFrom.Add(item);
 }
 
+void UConverter::SetConverterFromItem(TArray<UResourceCost*> items) {
+	for (int32 i = 0; i < items.Num(); i++) {
+		ConvertsFrom.Add(items[i]);
+	}
+}
+
 void UConverter::SetConverterToItem(UResourceCost* item) {
 	ConvertsTo.Add(item);
+}
+
+void UConverter::SetConverterToItem(TArray<UResourceCost*> items) {
+	for (int32 i = 0; i < items.Num(); i++) {
+		ConvertsTo.Add(items[i]);
+	}
 }
 #pragma endregion
 

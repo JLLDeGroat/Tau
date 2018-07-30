@@ -4,12 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "Researcher.h"
+#include "PlayerResource/ResourceCost.h"
+#include "Converter.h"
 #include "BuildingStructs.generated.h"
 
 /**
  * 
  */
-
 
 UENUM(BlueprintType)
 namespace EBuildingOwnerships
@@ -68,11 +70,31 @@ UCLASS()
 class TAUPROJECT_API UBuildingStructs : public UObject
 {
 	GENERATED_BODY()
+		UBuildingStructs();
 
 public:
 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = GameState)
-		TEnumAsByte<EBuildStates::EBuildingStates> BuildingStates;
+	static FString SetBuildingName(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType);
+
+	static FString SetBuildingDescription(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType);
+
+	static float SetBuildingHealth(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType);
+
+	static TArray<UResourceCost*> SetBuildingResourceCost(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType);
+
+	static TArray<UResearcher*> SetBuildingResearchCost(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType);
+
+	static TArray<UResearcher*> SetBuildingsResearchableItems(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType);
+
+	static TArray<FString> SetBuildingsBuildingNeededList(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType);
+
+	static UConverter* SetConversionIfConverterBuilding(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType);
+
+	static bool SetIsConverterBuilding(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType);
+
+	static bool SetIsResearcherBuilding(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType);
+
+	static bool SetBuildingCanStore(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType);
 
 };

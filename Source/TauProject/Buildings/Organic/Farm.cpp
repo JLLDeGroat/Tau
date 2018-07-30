@@ -13,9 +13,6 @@
 // Sets default values
 AFarm::AFarm()
 {
-	Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BuildingBody"));
-	Box->SetupAttachment(RootComponent);
-
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BoxAsset(TEXT("/Game/Models/Debug/BasicWindmill.BasicWindmill"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FailedBoxAsset(TEXT("/Game/Models/Debug/BasicHouse_OL.BasicHouse_OL"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> ConstructionStage1Asset(TEXT("/Game/Models/Debug/BasicHouse_UB.BasicHouse_UB"));
@@ -63,20 +60,10 @@ AFarm::AFarm()
 	Box->OnComponentBeginOverlap.AddDynamic(this, &AFarm::StartOverlap);
 	Box->OnComponentEndOverlap.AddDynamic(this, &AFarm::EndOverlap);
 
-	BuildingName = "Windmill";
-	Description = "The humble wind powered mill, is the source of your farmlands and can be used in the same was as a storage building but more costly.";
-	Health = 1;
-	MaxHealth = 500;
-
-	CanStore = true;
-
-	IsPlaced = false;
-
 	BuildingType = EAvailableBuildings::B_Farm;
 
-	SetupResearchItems();
-	SetupBuildingNeedsItem();
-	SetupBuildCosts();
+	IsPlaced = false;
+	
 }
 
 // Called when the game starts or when spawned
@@ -90,17 +77,3 @@ void AFarm::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
-
-void AFarm::SetupResearchItems() {
-
-}
-void AFarm::SetupBuildingNeedsItem() {
-
-}
-void AFarm::SetupBuildCosts() {
-	TArray<UResourceCost*> costList;
-	costList.Add(NewObject<UResourceCost>()->Setup(EResources::R_Lumber, 4));
-	costList.Add(NewObject<UResourceCost>()->Setup(EResources::R_Stone, 2));
-	SetBuildCosts(costList);
-}
-

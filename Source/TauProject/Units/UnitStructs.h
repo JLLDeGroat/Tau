@@ -1,23 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
-
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "PlayerResource/ResourceCost.h"
 #include "UnitStructs.generated.h"
 
-/**
- * 
- */
-UCLASS()
-class TAUPROJECT_API UnitStructs : public UObject
-{
-	GENERATED_BODY()
-public:
-
-
-
-};	
 
 UENUM(BlueprintType)
 namespace EUnitOwnerships
@@ -75,3 +63,76 @@ namespace EUnitList
 		UL_Sprout					UMETA(DisplayName = "Sprout")
 	};
 }
+
+UENUM(BlueprintType)
+namespace EUnitCombatType
+{
+	enum ArmamentType {
+		AT_OneHanded				UMETA(DisplayName = "One Handed"),
+		AT_Ranged					UMETA(DisplayName = "Ranged"),
+		AT_TwoHanded				UMETA(DisplayName = "Two Handed"),
+		AT_Civilian					UMETA(DisplayName = "Civilian")
+	};
+}
+
+
+UENUM(BlueprintType)
+namespace EUnitRightArm
+{
+	enum Armaments {
+		RA_BasicSword				UMETA(DisplayName = "BasicSword"),
+		RA_None						UMETA(DisplayName = "None")
+	};
+}
+
+UENUM(BlueprintType)
+namespace EUnitLeftArm
+{
+	enum Armaments {
+		LA_Sheild					UMETA(DisplayName = "Shield"),
+		LA_None						UMETA(DisplayName = "None")
+	};
+}
+
+UENUM(BlueprintType)
+namespace EUnitTwoHanded
+{
+	enum Armaments {
+		TH_Polearm					UMETA(DisplayName = "Polearm"),
+		TH_None						UMETA(DisplayName = "None")
+	};
+}
+
+
+/**
+*
+*/
+UCLASS()
+class TAUPROJECT_API UnitStructs : public UObject
+{
+	GENERATED_BODY()
+	UnitStructs();
+public:
+
+
+	static float GetInitialWalkingSpeed(TEnumAsByte<EUnitList::All> unit);
+
+	static float GetInitialHitPoints(TEnumAsByte<EUnitList::All> unit);
+
+	static float GetInitialAttack(TEnumAsByte<EUnitList::All> unit);
+
+	static float GetInitialCritChange(TEnumAsByte<EUnitList::All> unit);
+
+	static float GetInitialCritMultiplier(TEnumAsByte<EUnitList::All> unit);
+
+	static float GetInitialSpawnTime(TEnumAsByte<EUnitList::All> unit);
+
+	static float GetInitialAttackRange(TEnumAsByte<EUnitList::All> unit);
+
+	static float GetInitialLineOfSight(TEnumAsByte<EUnitList::All> unit);
+
+	static bool GetIsArmedUnit(TEnumAsByte<EUnitList::All> unit);
+
+	static TArray<UResourceCost*> GetInitialBuildCostArray(TEnumAsByte<EUnitList::All> unit);
+
+};

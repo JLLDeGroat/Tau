@@ -3,6 +3,8 @@
 #include "Corn.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Units/UnitInventory.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Runtime/Engine/Classes/Animation/AnimBlueprint.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "ConstructorHelpers.h"
@@ -12,7 +14,10 @@
 ACorn::ACorn()
 {
 
-	GetCapsuleComponent()->InitCapsuleSize(42.f, 42.0f);
+	float _capradius = 60.f;
+	float _capheight = 96.0f;
+
+	GetCapsuleComponent()->InitCapsuleSize(_capradius, _capheight);
 	GetCapsuleComponent()->bGenerateOverlapEvents = true;
 
 	// Configure character movement
@@ -20,20 +25,33 @@ ACorn::ACorn()
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
 	GetCharacterMovement()->bConstrainToPlane = true;
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
+	
 
+	CurrentMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("UnitBody"));
+	CurrentMesh->SetupAttachment(RootComponent);
+	CurrentMesh->SetRelativeRotation(FRotator(0, 90, 0)); // rotate mesh to fit direction
+	CurrentMesh->SetRelativeLocation(FVector(0, 0, -100)); // move mesh down to fit in capsule
+	CurrentMesh->SetWorldScale3D(FVector(.7f));
+	CurrentMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	CurrentMesh->bGenerateOverlapEvents = true;
+	CurrentMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+	CurrentMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
-	UStaticMeshComponent* Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("UnitBody"));
-	Box->SetupAttachment(RootComponent);
+	selectedDecal->SetRelativeLocation(FVector(0, 0, -_capheight));
+	highlightedDecal->SetRelativeLocation(FVector(0, 0, -_capheight));
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> BoxAsset(TEXT("/Game/Models/Debug/Box.Box"));
-	if (BoxAsset.Succeeded()) {
-		Box->SetStaticMesh(BoxAsset.Object);
-		Box->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
-		Box->SetWorldScale3D(FVector(.5f));
-		Box->bGenerateOverlapEvents = true;
-	}
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeleMesh(TEXT("/Game/Models/Units/Corn/Idle_Corn.Idle_Corn"));
+	if (SkeleMesh.Succeeded()) CurrentMesh->SetSkeletalMesh(SkeleMesh.Object);
 
-	//this->AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
+	static ConstructorHelpers::FObjectFinder<UAnimBlueprint> AnimObj(TEXT("/Game/Blueprints/AnimationBp/Corn_Anim_Bp.Corn_Anim_Bp"));
+	if (AnimObj.Succeeded()) CurrentMesh->SetAnimInstanceClass(AnimObj.Object->GeneratedClass);
+
+	GetCharacterMovement()->bOrientRotationToMovement = true; // Rotate character to moving direction when moving
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
+	GetCharacterMovement()->bConstrainToPlane = true;
+	GetCharacterMovement()->bSnapToPlaneAtStart = true;
+
+	this->AutoPossessAI = EAutoPossessAI::PlacedInWorldOrSpawned;
 
 
 	LineOfSight = 190;
@@ -50,9 +68,7 @@ ACorn::ACorn()
 
 
 	CanHarvest = true;
-	HarvestRate = 1;
-
-	
+	HarvestRate = 1;	
 }
 
 // Called when the game starts or when spawned

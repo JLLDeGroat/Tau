@@ -13,9 +13,6 @@
 // Sets default values
 ACopperForge::ACopperForge()
 {
-	Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BuildingBody"));
-	Box->SetupAttachment(RootComponent);
-
 	//StaticMesh'/Game/Models/Debug/BasicHouse_UB.BasicHouse_UB'
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BoxAsset(TEXT("/Game/Models/Debug/BasicHouse.BasicHouse"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FailedBoxAsset(TEXT("/Game/Models/Debug/BasicHouse_OL.BasicHouse_OL"));
@@ -60,18 +57,9 @@ ACopperForge::ACopperForge()
 	Box->OnComponentBeginOverlap.AddDynamic(this, &ACopperForge::StartOverlap);
 	Box->OnComponentEndOverlap.AddDynamic(this, &ACopperForge::EndOverlap);
 
-	BuildingName = "Copper Forge";
-	Description = "Manipulate heat to forge copper ingots from ore.";
-	Health = 1;
-	MaxHealth = 500;
-
 	IsPlaced = false;
 
 	BuildingType = EAvailableBuildings::B_CopperForge;
-
-	SetupResearchItems();
-	SetupBuildingNeedsItem();
-	SetupBuildCosts();
 
 }
 
@@ -87,18 +75,4 @@ void ACopperForge::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-}
-
-
-void ACopperForge::SetupResearchItems() {
-
-}
-void ACopperForge::SetupBuildingNeedsItem() {
-
-}
-void ACopperForge::SetupBuildCosts() {
-	TArray<UResourceCost*> resCost;
-	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Planks, 10));
-	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_CopperOre, 5));
-	SetBuildCosts(resCost);
 }

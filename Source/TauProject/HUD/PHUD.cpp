@@ -11,7 +11,7 @@
 void APHUD::DrawHUD()
 {
 	Super::DrawHUD();
-	if (bIsSelecting) {
+	if (bIsSelecting) {		
 		SelectedUnits.Empty();
 		SelectedBuildings.Empty();
 		SelectedResources.Empty();
@@ -22,6 +22,7 @@ void APHUD::DrawHUD()
 		GetActorsRootInSelectionRectangle<AUnits>(InitialPoint, CurrentPoint, SelectedUnits, false, false);
 		GetActorsInSelectionRectangle<ABuilding>(InitialPoint, CurrentPoint, SelectedBuildings, false, false);
 		GetActorsInSelectionRectangle<AResource>(InitialPoint, CurrentPoint, SelectedResources, false, false);		
+				
 	}
 }
 

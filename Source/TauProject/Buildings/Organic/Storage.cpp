@@ -13,9 +13,6 @@
 // Sets default values
 AStorage::AStorage()
 {
-	Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BuildingBody"));
-	Box->SetupAttachment(RootComponent);
-
 	//StaticMesh'/Game/Models/Debug/BasicHouse_UB.BasicHouse_UB'
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BoxAsset(TEXT("/Game/Models/Debug/BasicHouse.BasicHouse"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FailedBoxAsset(TEXT("/Game/Models/Debug/BasicHouse_OL.BasicHouse_OL"));
@@ -60,18 +57,9 @@ AStorage::AStorage()
 	Box->OnComponentBeginOverlap.AddDynamic(this, &AStorage::StartOverlap);
 	Box->OnComponentEndOverlap.AddDynamic(this, &AStorage::EndOverlap);
 
-	CanStore = true;
 
-	Health = 1;
-	MaxHealth = 350;
+	BuildingType = EAvailableBuildings::B_Storage;
 
-	BuildingName = "Storage";
-	Description = "Harvesting units can drop resources off at this location and will add to your vegville, pro tip: put near resources...";
-
-	
-	SetupResearchItems();
-	SetupBuildingNeedsItem();
-	SetupBuildCosts();
 }
 
 // Called when the game starts or when spawned
@@ -86,16 +74,3 @@ void AStorage::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-
-void AStorage::SetupResearchItems() {
-	//no research for storage
-}
-void AStorage::SetupBuildingNeedsItem() {
-	//no buildings needed
-}
-void AStorage::SetupBuildCosts() {
-	TArray<UResourceCost*> costList;
-	costList.Add(NewObject<UResourceCost>()->Setup(EResources::R_Lumber, 4));
-	costList.Add(NewObject<UResourceCost>()->Setup(EResources::R_Stone, 2));
-	SetBuildCosts(costList);
-}

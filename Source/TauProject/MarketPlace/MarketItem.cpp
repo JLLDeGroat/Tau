@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "MarketItem.h"
+#include "Algo/Reverse.h"
 
 UMarketItem::UMarketItem() {
 
@@ -10,9 +11,14 @@ UMarketItem* UMarketItem::Setup(FString resFrom, FString resTo, TEnumAsByte<ERes
 	resourceFrom = resFrom;
 	resourceTo = resTo;
 
+	SetBaseConversionRate(fromTier, toTier);
 	SetCurrentConversion(fromTier, toTier, true);
-
 	return this;
+}
+
+void UMarketItem::SetBaseConversionRate(TEnumAsByte<EResourceTier::Tier> fromTier, TEnumAsByte<EResourceTier::Tier> toTier) {
+	BaseConversionRate = (GetRateFromTier(fromTier) + GetRateFromTier(toTier)) / 2;
+	CurrentConversionRate = BaseConversionRate;
 }
 
 void UMarketItem::SetCurrentConversion(TEnumAsByte<EResourceTier::Tier> fromTier, TEnumAsByte<EResourceTier::Tier> toTier, bool bIsInitial) {
@@ -20,9 +26,13 @@ void UMarketItem::SetCurrentConversion(TEnumAsByte<EResourceTier::Tier> fromTier
 	{
 		Conversions.Add(CurrentConversion);
 		ConversionEvents.Add(CurrentEvent);
-	}
 
-	CurrentConversion = (GetRateFromTier(fromTier) + GetRateFromTier(toTier)) / 2;
+		if (Conversions.Num() > 10) Conversions.RemoveAt(10);
+		if (ConversionEvents.Num() > 10) ConversionEvents.RemoveAt(10);
+	}
+	
+	CurrentConversion += .03f;
+	if (CurrentConversion > BaseConversionRate) CurrentConversion = BaseConversionRate; //  can not go above base until a demand event occurs below
 
 	int32 eventRate = FMath::RandRange(0, 100);
 	if (eventRate < 10) {
@@ -41,20 +51,22 @@ void UMarketItem::SetCurrentConversion(TEnumAsByte<EResourceTier::Tier> fromTier
 	else {
 		CurrentEvent = "Normal trading";
 	}
+
+	if (CurrentConversion < 0) CurrentConversion = 0;
 }
 
 float UMarketItem::GetRateFromTier(TEnumAsByte<EResourceTier::Tier> tier) {
 	switch (tier) {
 	case EResourceTier::T_1:
-		return .35f;
+		return .6f;
 	case EResourceTier::T_2:
-		return .5f;
+		return .8f;
 	case EResourceTier::T_3:
-		return .75f;
+		return .99f;
 	case EResourceTier::T_4:
 		return 1;
 	case EResourceTier::T_5:
-		return 2;
+		return 1;
 
 	default: 
 		return 0.35;
@@ -96,9 +108,13 @@ float UMarketItem::GetTimesTraded() {
 }
 
 TArray<float> UMarketItem::GetHistoricConversions() {
-	return Conversions;
+	TArray<float> reversed = Conversions;
+	Algo::Reverse(reversed);
+	return reversed;
 }
 
 TArray<FString> UMarketItem::GetHistoricEvents() {
-	return ConversionEvents;
+	TArray<FString> reversed = ConversionEvents;
+	Algo::Reverse(reversed);
+	return reversed;
 }

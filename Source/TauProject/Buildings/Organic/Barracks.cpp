@@ -12,10 +12,7 @@
 
 // Sets default values
 ABarracks::ABarracks()
-{
-	Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BuildingBody"));
-	Box->SetupAttachment(RootComponent);
- 
+{ 
 	//StaticMesh'/Game/Models/Debug/BasicHouse_UB.BasicHouse_UB'
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BoxAsset(TEXT("/Game/Models/Debug/BasicHouse.BasicHouse"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FailedBoxAsset(TEXT("/Game/Models/Debug/BasicHouse_OL.BasicHouse_OL"));
@@ -60,19 +57,11 @@ ABarracks::ABarracks()
 	Box->OnComponentBeginOverlap.AddDynamic(this, &ABarracks::StartOverlap);
 	Box->OnComponentEndOverlap.AddDynamic(this, &ABarracks::EndOverlap);
 	
-	BuildingName = "Pea Generator";
-	Description = "Basic millitary units can be trained (to minimal skill) units can come in a variety of arms and can not be equipped with " 
-		 "advanced millitary gear created in the armory.";
-	Health = 1;
-	MaxHealth = 500;
-
+	
 	IsPlaced = false;
 
-	BuildingType = EAvailableBuildings::B_Barracks;
 
-	SetupResearchItems();
-	SetupBuildingNeedsItem();
-	SetupBuildCosts();
+	BuildingType = EAvailableBuildings::B_Barracks;	
 }
 
 // Called when the game starts or when spawned
@@ -87,18 +76,3 @@ void ABarracks::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
-
-
-void ABarracks::SetupResearchItems() {
-
-}
-void ABarracks::SetupBuildingNeedsItem() {
-
-}
-void ABarracks::SetupBuildCosts() {
-	TArray<UResourceCost*> resCost;
-	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Stone, 10));
-	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Iron, 5));
-	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Copper, 5));
-	SetBuildCosts(resCost);
-}

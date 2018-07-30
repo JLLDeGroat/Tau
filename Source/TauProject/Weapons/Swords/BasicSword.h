@@ -3,17 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Resources/Resource.h"
-#include "Coal.generated.h"
+#include "Weapons/Weapon.h"
+#include "BasicSword.generated.h"
 
 UCLASS()
-class TAUPROJECT_API ACoal : public AResource
+class TAUPROJECT_API ABasicSword : public AWeapon
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ACoal();
+	ABasicSword();
 
 protected:
 	// Called when the game starts or when spawned

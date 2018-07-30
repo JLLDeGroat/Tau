@@ -38,12 +38,33 @@ ABuilding::ABuilding()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	ResourceConverter = NewObject<UConverter>();
+
+	Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BuildingBody"));
+	Box->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
 void ABuilding::BeginPlay()
 {
 	Super::BeginPlay();
+
+
+	SetIsResearchBuilding(UBuildingStructs::SetIsResearcherBuilding(this->BuildingType));
+	SetIsConverter(UBuildingStructs::SetIsConverterBuilding(this->BuildingType));
+
+	this->BuildingName = UBuildingStructs::SetBuildingName(this->BuildingType);
+	this->MaxHealth = UBuildingStructs::SetBuildingHealth(this->BuildingType);
+	this->Description = UBuildingStructs::SetBuildingDescription(this->BuildingType);
+	this->Health = 1;
+
+	SetBuildCosts(UBuildingStructs::SetBuildingResourceCost(this->BuildingType));
+	SetResearchCosts(UBuildingStructs::SetBuildingResearchCost(this->BuildingType));
+	SetNeededBuildingList(UBuildingStructs::SetBuildingsBuildingNeededList(this->BuildingType));
+	
+	if (this->IsConverter) 
+		this->ResourceConverter = UBuildingStructs::SetConversionIfConverterBuilding(this->BuildingType);
+
+	this->CanStore = UBuildingStructs::SetBuildingCanStore(this->BuildingType);
 }
 
 // Called every frame

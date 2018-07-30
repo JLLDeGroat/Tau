@@ -6,65 +6,82 @@
 
 
 
-float UAll::GetResourceCount(TEnumAsByte<EResources::All> resource) {
+float UAll::GetResourceCount(TEnumAsByte<EResources::All> resource, bool IsUI) {
 	switch (resource) {
 
 	case EResources::R_IronOre:
-		return IronOre;
+		if (IsUI) return FMath::FloorToFloat(IronOre);
+		else return IronOre;
 
 	case EResources::R_CopperOre:
-		return CopperOre;
+		if (IsUI) return FMath::FloorToFloat(CopperOre);
+		else return CopperOre;
 
 	case EResources::R_Stone:
-		return Stone;
+		if (IsUI) return FMath::FloorToFloat(Stone);
+		else return Stone;
 
 	case EResources::R_Lumber:
-		return Lumber;
+		if (IsUI) return FMath::FloorToFloat(Lumber);
+		else return Lumber;
 
 	case EResources::R_Wheat:
-		return Wheat;
+		if (IsUI) return FMath::FloorToFloat(Wheat);
+		else return Wheat;
 
 	case EResources::R_Coal:
-		return Coal;
+		if (IsUI) return FMath::FloorToFloat(Coal);
+		else return Coal;
 
 	case EResources::R_Water:
-		return Water;
+		if (IsUI) return FMath::FloorToFloat(Water);
+		else return Water;
 
 		//advance
 
 	case EResources::R_Copper:
-		return Copper;
+		if (IsUI) return FMath::FloorToFloat(Copper);
+		else return Copper;
 
 	case EResources::R_Iron:
-		return Iron;
+		if (IsUI) return FMath::FloorToFloat(Iron);
+		else return Iron;
 
 	case EResources::R_Alcohol:
-		return Alcohol;
+		if (IsUI) return FMath::FloorToFloat(Alcohol);
+		else return Alcohol;
 
 	case EResources::R_Bread:
-		return Bread;
+		if (IsUI) return FMath::FloorToFloat(Bread);
+		else return Bread;
 
 	case EResources::R_Steel:
-		return Steel;
+		if (IsUI) return FMath::FloorToFloat(Steel);
+		else return Steel;
 
 	case EResources::R_Planks:
-		return Planks;
+		if (IsUI) return FMath::FloorToFloat(Planks);
+		else return Planks;
 
 	//elite
 
 	case EResources::R_Peatanium:
-		return Peatanium;
+		if (IsUI) return FMath::FloorToFloat(Peatanium);
+		else return Peatanium;
 
 	//equip
 
 	case EResources::E_IronSword:
-		return IronSword;
+		if (IsUI) return FMath::FloorToFloat(IronSword);
+		else return IronSword;
 
 	case EResources::E_CopperSword:
-		return CopperSword;
+		if (IsUI) return FMath::FloorToFloat(CopperSword);
+		else return CopperSword;
 
 	case EResources::E_SteelSword:
-		return SteelSword;
+		if (IsUI) return FMath::FloorToFloat(SteelSword);
+		else return SteelSword;
 	}
 	return -1;
 }

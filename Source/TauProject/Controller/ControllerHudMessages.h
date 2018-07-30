@@ -33,5 +33,43 @@ public:
 	void MessageShown();
 	void ShowMessage(FString Message);
 	
+
+	#pragma region Completion Messages
+	
+	UPROPERTY()
+		bool bShowCompletionMessage;
+
+	UPROPERTY()
+		bool bCurrentlyShowingCompletionMessage;
+
+	UPROPERTY()
+		FString CompletionMessage;
+
+	UPROPERTY()
+		TArray<FString> CompletionMessageQueue;
+
+
+	UFUNCTION(BlueprintCallable)
+		bool GetCurrentlyShowingCompletionMessage();
+
+	UFUNCTION(BlueprintCallable)
+		bool GetShouldShowCompletionMessage();
+
+	UFUNCTION(BlueprintCallable)
+		void SetCurrentlyShowingCompletionMessage(bool val);
+
+	
+
+	UFUNCTION(BlueprintCallable)
+		FString GetFirstCompletionMessage();
+
+	int32 GetCompletionMessageQueueCount();
+	TArray<FString> GetCompletionMessageQueue();
+
+	void ShowCompletionMessage(FString Message);
+
+	UFUNCTION(BlueprintCallable)
+		void FinishedShowingCompletionMessage();
+	#pragma endregion
 	
 };

@@ -5,8 +5,8 @@
 #include "PlayerResource/EResource.h"
 #include "Engine/StaticMesh.h"
 #include "GameFramework/Actor.h"
+#include "Components/StaticMeshComponent.h"
 #include "Resource.generated.h"
-
 UCLASS()
 class TAUPROJECT_API AResource : public AActor
 {
@@ -24,6 +24,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	
+	UPROPERTY()
+		UStaticMeshComponent* resourceMesh;
 
 
 	UPROPERTY(EditAnywhere, Category = GlobalResource)
@@ -58,8 +60,6 @@ public:
 	#pragma region Setters
 
 	void SetIsDepleted();
-
-	float SetInitialResources(TEnumAsByte<EResources::All> resource);
 	
 	#pragma endregion
 
@@ -67,8 +67,6 @@ public:
 	#pragma region Harvested
 
 	float RemoveAmountFromCount(float amount);
-
-	void AfterRemovedChecks();
 
 	#pragma endregion
 	

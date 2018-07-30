@@ -13,6 +13,16 @@ UResearcher::UResearcher(FString name, FString desc, TArray<UResourceCost*> cost
 	this->ResearchTime = researchTime;
 }
 
+UResearcher* UResearcher::Setup(FString name, FString desc, float researchTime, float childVersions, TEnumAsByte<EResearchList::EResearhables> researchEnum, TArray<UResourceCost*> costList) {
+	this->Name = name;
+	this->Description = desc;
+	this->ResearchCost = costList;
+	this->ResearchTime = researchTime;
+	this->ChildrenVersions = childVersions;
+	this->ResearchType = researchEnum;
+	return this;
+}
+
 
 void UResearcher::UpdateResearch(float DeltaTime) {
 	if (HasStarted) {

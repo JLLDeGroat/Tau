@@ -13,8 +13,8 @@
 // Sets default values
 AFarmField::AFarmField()
 {
-	Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BuildingBody"));
-	Box->SetupAttachment(RootComponent);
+	/*Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BuildingBody"));
+	Box->SetupAttachment(RootComponent);*/
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BoxAsset(TEXT("/Game/Models/Debug/FarmLand_D.FarmLand_D"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FailedBoxAsset(TEXT("/Game/Models/Debug/BasicHouse_OL.BasicHouse_OL"));
@@ -63,11 +63,7 @@ AFarmField::AFarmField()
 	Box->OnComponentBeginOverlap.AddDynamic(this, &AFarmField::StartOverlap);
 	Box->OnComponentEndOverlap.AddDynamic(this, &AFarmField::EndOverlap);
 
-	BuildingName = "Farm Field";
-	Description = "Create farms to harvest wheat, the only resource peas know (for some reason) and use it to create food";
-	Health = 1;
-	MaxHealth = 500;
-
+	
 	IsPlaced = false;
 
 	BuildingType = EAvailableBuildings::B_FarmLand;
@@ -77,10 +73,6 @@ AFarmField::AFarmField()
 	SetRadiusPlaceActor(EAvailableBuildings::B_Farm);
 	SetRadiusPlaceAmount(650);
 
-
-	SetupResearchItems();
-	SetupBuildingNeedsItem();
-	SetupBuildCosts();
 }
 
 // Called when the game starts or when spawned
@@ -96,17 +88,5 @@ void AFarmField::BeginPlay()
 void AFarmField::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
-void AFarmField::SetupResearchItems() {
-
-}
-void AFarmField::SetupBuildingNeedsItem() {
-
-}
-void AFarmField::SetupBuildCosts() {
-	TArray<UResourceCost*> resCost;
-	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Lumber, 5));
-	SetBuildCosts(resCost);
-}

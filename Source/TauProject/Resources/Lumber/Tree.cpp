@@ -13,23 +13,17 @@ ATree::ATree()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
-	UStaticMeshComponent* Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ResourceBody"));
-	Box->SetupAttachment(RootComponent);
+	//UStaticMeshComponent* Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ResourceBody"));
+	//Box->SetupAttachment(RootComponent);
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> BoxAsset(TEXT("/Game/Models/Debug/ResourceBlock.ResourceBlock"));
-	if (BoxAsset.Succeeded()) {
-		Box->SetStaticMesh(BoxAsset.Object);
-		Box->SetRelativeLocation(FVector(0.0f, 0.0f, 0.0f));
-		Box->SetWorldScale3D(FVector(.5f));
-		Box->bGenerateOverlapEvents = true;
-		Box->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldDynamic, ECollisionResponse::ECR_Overlap);
-		Box->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Overlap);
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> boxasset(TEXT("/game/models/debug/basictree.basictree"));
+	if (boxasset.Succeeded()) {
+		resourceMesh->SetStaticMesh(boxasset.Object);
 	}
 
 	
 
 	ResourceType = EResources::R_Lumber;
-	ResourceCount = SetInitialResources(ResourceType);
 
 }
 

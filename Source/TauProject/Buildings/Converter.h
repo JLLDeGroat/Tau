@@ -57,6 +57,9 @@ public:
 
 	void SetConverterFromItem(UResourceCost* item);
 	void SetConverterToItem(UResourceCost* item);
+
+	void SetConverterFromItem(TArray<UResourceCost*> items);
+	void SetConverterToItem(TArray<UResourceCost*> items);
 	#pragma endregion
 
 	UPROPERTY()

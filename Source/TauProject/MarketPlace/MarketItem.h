@@ -47,14 +47,13 @@ public:
 	
 
 	void SetCurrentConversion(TEnumAsByte<EResourceTier::Tier> fromTier, TEnumAsByte<EResourceTier::Tier> toTier, bool bIsInitial = false);
-	
+	void SetBaseConversionRate(TEnumAsByte<EResourceTier::Tier> fromTier, TEnumAsByte<EResourceTier::Tier> toTier);
 	float GetRateFromTier(TEnumAsByte<EResourceTier::Tier> tier);
 
 	void SetResFrom(FString res);
 
 	void SetResTo(FString res);
-
-
+	
 	UFUNCTION(BlueprintCallable)
 		float GetCurrentConversion();
 	UFUNCTION(BlueprintCallable)
@@ -70,8 +69,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 		TArray<FString> GetHistoricEvents();
 
-
-
+	
 	void IncrementTimesTraded();
 
 	

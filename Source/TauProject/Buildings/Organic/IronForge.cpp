@@ -13,9 +13,6 @@
 // Sets default values
 AIronForge::AIronForge()
 {
-	Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BuildingBody"));
-	Box->SetupAttachment(RootComponent);
-
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BoxAsset(TEXT("/Game/Models/Debug/BasicHouse.BasicHouse"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FailedBoxAsset(TEXT("/Game/Models/Debug/BasicHouse_OL.BasicHouse_OL"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> ConstructionStage1Asset(TEXT("/Game/Models/Debug/BasicHouse_UB.BasicHouse_UB"));
@@ -63,20 +60,9 @@ AIronForge::AIronForge()
 	Box->OnComponentBeginOverlap.AddDynamic(this, &AIronForge::StartOverlap);
 	Box->OnComponentEndOverlap.AddDynamic(this, &AIronForge::EndOverlap);
 
-	BuildingName = "Iron Forge";
-	Description = "The heat is intense, many a pea could not stand the heat in this particular kitchen.";
-	Health = 1;
-	MaxHealth = 500;
-
-	CanStore = true;
-
 	IsPlaced = false;
 
 	BuildingType = EAvailableBuildings::B_IronForge;
-
-	SetupResearchItems();
-	SetupBuildingNeedsItem();
-	SetupBuildCosts();
 }
 
 // Called when the game starts or when spawned
@@ -91,18 +77,4 @@ void AIronForge::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-}
-
-void AIronForge::SetupResearchItems() {
-
-}
-void AIronForge::SetupBuildingNeedsItem() {
-
-}
-void AIronForge::SetupBuildCosts() {
-	TArray<UResourceCost*> resCost;
-	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Planks, 10));
-	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Copper, 5));
-	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_IronOre, 5));
-	SetBuildCosts(resCost);
 }

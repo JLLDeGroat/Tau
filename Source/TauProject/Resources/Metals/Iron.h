@@ -3,11 +3,11 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Resources/Resource.h"
 #include "Iron.generated.h"
 
 UCLASS()
-class TAUPROJECT_API AIron : public AActor
+class TAUPROJECT_API AIron : public AResource
 {
 	GENERATED_BODY()
 	

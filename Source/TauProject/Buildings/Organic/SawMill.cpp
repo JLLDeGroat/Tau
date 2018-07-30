@@ -12,10 +12,6 @@
 
 ASawMill::ASawMill() {
 
-	Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BuildingBody"));
-	Box->SetupAttachment(RootComponent);
-
-
 	//StaticMesh'/Game/Models/Debug/BasicHouse_UB.BasicHouse_UB'
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BoxAsset(TEXT("/Game/Models/Debug/BasicHouse.BasicHouse"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FailedBoxAsset(TEXT("/Game/Models/Debug/BasicHouse_OL.BasicHouse_OL"));
@@ -60,15 +56,9 @@ ASawMill::ASawMill() {
 	Box->OnComponentBeginOverlap.AddDynamic(this, &ASawMill::StartOverlap);
 	Box->OnComponentEndOverlap.AddDynamic(this, &ASawMill::EndOverlap);
 
-	BuildingName = "Saw Mill";
-	Description = "Cut Sturdy wood into sturdier wood because it looks better.";
-	Health = 1;
-	MaxHealth = 500;
 
 	IsPlaced = false;
-
 	BuildingType = EAvailableBuildings::B_SawMill;
-	IsConverter = true;
 }
 
 
@@ -76,30 +66,18 @@ void ASawMill::BeginPlay() {
 	Super::BeginPlay();
 
 
-	TArray<UResourceCost*> costs;
-	TArray<UResourceCost*> rewards;
-	costs.Add(NewObject<UResourceCost>()->Setup(EResources::R_Lumber, 1));	
-	rewards.Add(NewObject<UResourceCost>()->Setup(EResources::R_Planks, 1));
-	SetResourceConversions(costs, rewards, 20);
-	
-	TArray<UResourceCost*> clist1;
-	clist1.Add(NewObject<UResourceCost>()->Setup(EResources::R_Lumber, 1));
-	SetBuildCosts(clist1);
+	//TArray<UResourceCost*> costs;
+	//TArray<UResourceCost*> rewards;
+	//costs.Add(NewObject<UResourceCost>()->Setup(EResources::R_Lumber, 1));	
+	//rewards.Add(NewObject<UResourceCost>()->Setup(EResources::R_Planks, 1));
+	//SetResourceConversions(costs, rewards, 20);
+	//
+	//TArray<UResourceCost*> clist1;
+	//clist1.Add(NewObject<UResourceCost>()->Setup(EResources::R_Lumber, 1));
+	//SetBuildCosts(clist1);
 }
 
 void ASawMill::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 }
 
-
-void ASawMill::SetupResearchItems() {
-	
-}
-void ASawMill::SetupBuildingNeedsItem() {
-
-}
-void ASawMill::SetupBuildCosts() {
-	TArray<UResourceCost*> resCost;
-	resCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_Lumber, 15));
-	SetBuildCosts(resCost);
-}

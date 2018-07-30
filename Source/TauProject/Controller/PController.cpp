@@ -46,7 +46,7 @@
 APController::APController() {
 	bShowMouseCursor = true;
 	bEnableClickEvents = true;
-	bEnableTouchEvents = true;		
+	bEnableTouchEvents = true;
 	//basic	
 }
 
@@ -69,6 +69,7 @@ void APController::BeginPlay() {
 	//grab initial units and assign them this controller
 	for (TActorIterator<AUnits> ActorItr(GetWorld()); ActorItr; ++ActorItr)
 	{
+		
 		// Same as with the Object Iterator, access the subclass instance with the * or -> operators.
 		AUnits* unit = *ActorItr;
 		if (unit->GetUnitOwner() == EUnitOwnerships::UO_Player) unit->SetController(this);
@@ -78,13 +79,15 @@ void APController::BeginPlay() {
 
 
 void APController::Tick(float DeltaTime) {
-	Super::Tick(DeltaTime);	
+	Super::Tick(DeltaTime);
 
 	if (IsPlacingBuilding) KeepBuildingAtMouse();
 
 	DetermineSelectedUnit();
 
 	UpdateMarket(DeltaTime);
+
+	HighlightHoveredUnit();
 }
 
 #pragma endregion
@@ -109,9 +112,15 @@ void APController::LeftMouseClick() {
 	Hudptr->InitialPoint = Hudptr->GetMousePosition2D();
 	Hudptr->bIsSelecting = true;
 
+	for (int32 i = 0; i < SelectedUnits.Num(); i++) {
+		SelectedUnits[i]->HideDecals();
+		Debug(FString::SanitizeFloat(SelectedUnits.Num()) + " units to hide");
+	}
+
 	if (IsPlacingBuilding) {
 		PlaceBuilding();
-	}
+	}		
+
 }
 
 void APController::LeftMouseClickRelease() {
@@ -119,7 +128,11 @@ void APController::LeftMouseClickRelease() {
 	SelectedUnits = Hudptr->SelectedUnits;
 	SelectedBuildings = Hudptr->SelectedBuildings;
 	SelectedResources = Hudptr->SelectedResources;
-	SetWidgetToShow();
+	//SetWidgetToShow();
+	for (int32 i = 0; i < SelectedUnits.Num(); i++) {
+		SelectedUnits[i]->ShowDecals();
+	}
+
 }
 
 void APController::RightMouseClick() {
@@ -139,7 +152,7 @@ void APController::RightMouseClickRelease() {
 			int32 UnitNumberInCount = i;
 			int32 TotalUnitsInCount = SelectedUnits.Num();
 			SelectedUnits[i]->MoveUnit(Hit.GetActor(), MovePosition, UnitNumberInCount, TotalUnitsInCount);
-		}	
+		}
 	}
 }
 
@@ -155,8 +168,8 @@ void APController::DebugFunctionOne() {
 
 #pragma region Resource Management
 
-float APController::GetResourceCount(TEnumAsByte<EResources::All> resource) {
-	return resources->GetResourceCount(resource);
+float APController::GetResourceCount(TEnumAsByte<EResources::All> resource, bool IsUI) {
+	return resources->GetResourceCount(resource, IsUI);
 }
 float APController::GetResourceCountCombine2(TEnumAsByte<EResources::All> resource, TEnumAsByte<EResources::All> resource2) {
 	return (resources->GetResourceCount(resource) + resources->GetResourceCount(resource2));
@@ -190,7 +203,7 @@ void APController::BeginPlaceBuilding(TEnumAsByte<EAvailableBuildings::EAvailabl
 		BuildingToPlace->Destroy();
 		BuildingToPlace = nullptr;
 	}
-	
+
 	BuildingToPlace = NewObject<ABuilding>()->FindOrSpawnBuilding(EBuilding, true, this->GetWorld()); // FindOrSpawnBuilding(EBuilding, true); // find
 	if (BuildingToPlace == nullptr) {
 		Debug("Building returned Null");
@@ -199,8 +212,8 @@ void APController::BeginPlaceBuilding(TEnumAsByte<EAvailableBuildings::EAvailabl
 
 	BuildingToPlace->SetPlayerController(this);
 
-	if (!CanBuyBuilding(BuildingToPlace) || !BuildingToPlace->SpecialSpawnConditionsMet() 
-		|| !HasResearchForBuilding(BuildingToPlace)	|| !HasBuildingsForThisBuilding(BuildingToPlace)
+	if (!CanBuyBuilding(BuildingToPlace) || !BuildingToPlace->SpecialSpawnConditionsMet()
+		|| !HasResearchForBuilding(BuildingToPlace) || !HasBuildingsForThisBuilding(BuildingToPlace)
 		) return; // found no building or can not afford or adheres to special rules
 
 	BuildingToPlace = BuildingToPlace->FindOrSpawnBuilding(EBuilding, false, GetWorld()); // spawn
@@ -241,7 +254,7 @@ bool APController::HasResearchForBuilding(ABuilding* building) {
 }
 
 bool APController::HasBuildingsForThisBuilding(ABuilding* building) {
-	
+
 
 
 	if (building->GetNeededBuildingList().Num() == 0) return true;
@@ -293,7 +306,7 @@ void APController::PlaceBuilding() {
 
 	AddToOwnedBuildings(BuildingToPlace);
 
-	
+
 
 	resources->AffectResouceListOnCounter(BuildingToPlace->GetBuildCost(), false);
 
@@ -344,6 +357,10 @@ void APController::AddUnitToBuildingSpawnList(TEnumAsByte<EUnitList::All> unit) 
 
 #pragma region Hud Management
 
+UControllerHudMessages* APController::GetHudMessageClass() {
+	return HudMessage;
+}
+
 void APController::DetermineSelectedUnit() {
 
 	if (SelectedUnits.Num() > 0) {
@@ -379,7 +396,7 @@ void APController::DetermineSelectedUnit() {
 			building
 		);
 
-		SetHasSelectedEntity(true);	
+		SetHasSelectedEntity(true);
 	}
 	else if (SelectedResources.Num() > 0) {
 		if (SelectionDetails == nullptr) SelectionDetails = NewObject<UPlayerSelection>(this);
@@ -398,7 +415,7 @@ void APController::DetermineSelectedUnit() {
 	}
 	else {
 		SetHasSelectedEntity(false);
-		SelectionDetails = nullptr;	
+		SelectionDetails = nullptr;
 	}
 }
 
@@ -436,6 +453,26 @@ void APController::SetShowHudMessage(bool val) {
 
 FString APController::GetShowHudMessageText() {
 	return HudMessage->Message;
+}
+
+void APController::HighlightHoveredUnit() {
+	FHitResult Hit;
+	GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, Hit);
+
+	if (AActor* actor = Hit.GetActor()) {
+
+		if (AUnits* unit = Cast<AUnits>(actor)) {
+			unit->bIsHighlighted = true;
+			HighlightedUnit = unit;
+			HighlightedUnit->ShowHighlighDecals();
+		}
+		else {
+			if (HighlightedUnit != nullptr) {
+				HighlightedUnit->bIsHighlighted = false;
+				HighlightedUnit = nullptr;
+			}
+		}
+	}
 }
 
 #pragma endregion
@@ -494,7 +531,6 @@ void APController::AddToResearchList(UResearcher* research) {
 
 void APController::AddListToResearchList(TArray<UResearcher*> researchList) {
 	for (int32 i = 0; i < researchList.Num(); i++) {
-
 		UResearcher* research = researchList[i];
 
 		for (int32 x = 0; x < ResearchedList.Num(); x++) {
@@ -503,7 +539,7 @@ void APController::AddListToResearchList(TArray<UResearcher*> researchList) {
 				break;
 			}
 		}
-
+		HudMessage->ShowCompletionMessage(research->Name + " has been successfully researched");
 		ResearchedList.Add(research);
 	}
 }
@@ -533,7 +569,7 @@ void APController::GenerateMarket() {
 void APController::UpdateMarket(float DeltaTime) {
 	MarketUpdateCountDown += DeltaTime;
 
-	if (MarketUpdateCountDown > 60) {
+	if (MarketUpdateCountDown > 5) {
 		(new FAutoDeleteAsyncTask<MarketTask>(this, marketHistory, resources, false))->StartBackgroundTask();
 		MarketUpdateCountDown = 0;
 		Debug("Market Updated");
@@ -545,7 +581,7 @@ UObject* APController::GetMarketItem(FString resFrom, FString resTo) {
 		UObject* object = marketHistory->MarketItems[i];
 		if (UMarketItem* item = Cast<UMarketItem>(object)) {
 			if (item->GetResFrom() == resFrom && item->GetResTo() == resTo) return item;
-		}		
+		}
 	}
 	Debug("Found No Market Item");
 	return nullptr;

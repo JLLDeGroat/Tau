@@ -28,3 +28,46 @@ void UControllerHudMessages::ShowMessage(FString message) {
 		bCurrentlyShowingMessage = true;
 	}
 }
+
+#pragma region Completion Messages
+
+int32 UControllerHudMessages::GetCompletionMessageQueueCount() {
+	return CompletionMessageQueue.Num();
+}
+TArray<FString> UControllerHudMessages::GetCompletionMessageQueue() {
+	return CompletionMessageQueue;
+}
+
+void UControllerHudMessages::ShowCompletionMessage(FString Message) {	
+	CompletionMessageQueue.Add(Message);	
+	bShowCompletionMessage = true;	
+}
+
+void UControllerHudMessages::FinishedShowingCompletionMessage() {
+	bShowCompletionMessage = false;
+	bCurrentlyShowingCompletionMessage = false;
+
+	CompletionMessageQueue.RemoveAt(0);
+
+	if (GetCompletionMessageQueueCount() > 0) {
+		bShowCompletionMessage = true;
+	}
+}
+
+FString UControllerHudMessages::GetFirstCompletionMessage(){
+	return CompletionMessageQueue[0];
+}
+
+bool UControllerHudMessages::GetCurrentlyShowingCompletionMessage() {
+	return bCurrentlyShowingCompletionMessage;
+}
+
+bool UControllerHudMessages::GetShouldShowCompletionMessage() {
+	return bShowCompletionMessage;
+}
+
+void UControllerHudMessages::SetCurrentlyShowingCompletionMessage(bool val) {
+	bCurrentlyShowingCompletionMessage = val;
+}
+
+#pragma endregion

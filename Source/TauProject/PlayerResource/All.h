@@ -71,7 +71,7 @@ public:
 	#pragma endregion
 
 	
-	float GetResourceCount(TEnumAsByte<EResources::All> resource);	
+	float GetResourceCount(TEnumAsByte<EResources::All> resource, bool IsUI = false);
 
 	void AffectResourceCounter(TEnumAsByte<EResources::All> resource, float amount, bool Add);
 

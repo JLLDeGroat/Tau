@@ -49,6 +49,9 @@ public:
 
 	UPROPERTY()
 		TArray<AResource*> SelectedResources;
+
+	UPROPERTY()
+		AUnits* HighlightedUnit;
 	
 	#pragma region Widgets	
 	UPROPERTY(EditAnywhere)
@@ -63,6 +66,9 @@ public:
 
 	UPROPERTY()
 		UControllerHudMessages* HudMessage;
+
+	UFUNCTION(BlueprintCallable)
+		UControllerHudMessages* GetHudMessageClass();
 
 	void ShowHudMessage(FString message);
 
@@ -84,7 +90,7 @@ public:
 	UFUNCTION(BlueprintCallable)
 		TEnumAsByte<EResources::All> GetResourceFromString(FString name);
 
-
+	void HighlightHoveredUnit();
 
 	#pragma endregion
 
@@ -94,7 +100,7 @@ public:
 		UAll* resources;
 
 	UFUNCTION(BlueprintCallable)
-	float GetResourceCount(TEnumAsByte<EResources::All> resource);
+	float GetResourceCount(TEnumAsByte<EResources::All> resource, bool IsUI = false);
 	UFUNCTION(BlueprintCallable)
 	float GetResourceCountCombine2(TEnumAsByte<EResources::All> resource, TEnumAsByte<EResources::All> resource2);
 	UFUNCTION(BlueprintCallable)

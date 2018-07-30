@@ -14,9 +14,6 @@
 // Sets default values
 AOreRefinery::AOreRefinery()
 {
-	Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BuildingBody"));
-	Box->SetupAttachment(RootComponent);
-
 	//StaticMesh'/Game/Models/Debug/BasicHouse_UB.BasicHouse_UB'
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BoxAsset(TEXT("/Game/Models/Debug/BasicHouse.BasicHouse"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> FailedBoxAsset(TEXT("/Game/Models/Debug/BasicHouse_OL.BasicHouse_OL"));
@@ -61,18 +58,9 @@ AOreRefinery::AOreRefinery()
 	Box->OnComponentBeginOverlap.AddDynamic(this, &AOreRefinery::StartOverlap);
 	Box->OnComponentEndOverlap.AddDynamic(this, &AOreRefinery::EndOverlap);
 
-	BuildingName = "Ore Refinery";
-	Description = "Research more effecient ways of craking, smelting and reducing slag from ores you get around the world.";
-	Health = 1;
-	MaxHealth = 500;
-
 	IsPlaced = false;
 
 	BuildingType = EAvailableBuildings::B_Barracks;
-
-	SetupResearchItems();
-	SetupBuildingNeedsItem();
-	SetupBuildCosts();
 
 }
 
@@ -87,24 +75,5 @@ void AOreRefinery::BeginPlay()
 void AOreRefinery::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-}
-
-
-
-void AOreRefinery::SetupResearchItems() {
-	//ORE REFINERY
-	UResearcher* oreRefinery = NewObject<UResearcher>();
-	oreRefinery->Name = "Ore Refinery";
-	oreRefinery->Description = "Learn the way of duplication, your smithee will alt f4 at the right moment allows doubling of smithed ingots";
-	oreRefinery->ResearchCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_IronOre, 10));
-	oreRefinery->ResearchCost.Add(NewObject<UResourceCost>()->Setup(EResources::R_CopperOre, 10));
-	oreRefinery->ResearchTime = 5;
-	ResearchCost.Add(oreRefinery);
-}
-void AOreRefinery::SetupBuildingNeedsItem() {
-
-}
-void AOreRefinery::SetupBuildCosts() {
 
 }

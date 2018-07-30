@@ -3,17 +3,24 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Resources/Resource.h"
-#include "Coal.generated.h"
+#include "GameFramework/Actor.h"
+#include "Weapon.generated.h"
 
 UCLASS()
-class TAUPROJECT_API ACoal : public AResource
+class TAUPROJECT_API AWeapon : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ACoal();
+	AWeapon();
+
+	UPROPERTY()
+		UStaticMeshComponent* WeaponMesh;
+
+	UPROPERTY()
+		UStaticMesh* Mesh;
+
 
 protected:
 	// Called when the game starts or when spawned
