@@ -61,6 +61,7 @@ AOreRefinery::AOreRefinery()
 	IsPlaced = false;
 
 	BuildingType = EAvailableBuildings::B_Barracks;
+	PostConstructionMethod();
 
 }
 

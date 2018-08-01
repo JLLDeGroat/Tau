@@ -58,13 +58,15 @@ void APController::BeginPlay() {
 	resources = NewObject<UAll>();
 	marketHistory = NewObject<UMarketHistory>();
 
-	resources->AffectResourceCounter(EResources::R_Lumber, 20, true);
-	resources->AffectResourceCounter(EResources::R_Stone, 20, true);
-	resources->AffectResourceCounter(EResources::R_Bread, 20, true);
-	resources->AffectResourceCounter(EResources::R_Iron, 20, true);
-	resources->AffectResourceCounter(EResources::R_Planks, 15, true);
-	resources->AffectResourceCounter(EResources::R_CopperOre, 5, true);
-	resources->AffectResourceCounter(EResources::R_IronOre, 5, true);
+	resources->AffectResourceCounter(EResources::R_Lumber, 100, true);
+	resources->AffectResourceCounter(EResources::R_Stone, 100, true);
+	resources->AffectResourceCounter(EResources::R_Bread, 100, true);
+	resources->AffectResourceCounter(EResources::R_Iron, 100, true);
+	resources->AffectResourceCounter(EResources::R_Copper, 100, true);
+	resources->AffectResourceCounter(EResources::R_Planks, 100, true);
+	resources->AffectResourceCounter(EResources::R_CopperOre, 100, true);
+	resources->AffectResourceCounter(EResources::R_IronOre, 100, true);
+	resources->AffectResourceCounter(EResources::R_Planks, 100, true);
 
 	//grab initial units and assign them this controller
 	for (TActorIterator<AUnits> ActorItr(GetWorld()); ActorItr; ++ActorItr)
@@ -224,8 +226,10 @@ void APController::BeginPlaceBuilding(TEnumAsByte<EAvailableBuildings::EAvailabl
 }
 
 bool APController::CanBuyBuilding(ABuilding* building) {
-	if (resources->CanAffordResourceList(building->GetBuildCost()))
+	if (resources->CanAffordResourceList(building->GetBuildCost())) {
+		Debug("Can afford");
 		return true;
+	}
 	else {
 		Debug("Cannot Afford To build " + building->BuildingName);
 		ShowHudMessage("Cannot Afford To build " + building->BuildingName);
@@ -234,6 +238,8 @@ bool APController::CanBuyBuilding(ABuilding* building) {
 }
 
 bool APController::HasResearchForBuilding(ABuilding* building) {
+	Debug(FString::SanitizeFloat(building->ResearchCost.Num()));
+
 	if (building->ResearchCost.Num() == 0) return true;
 
 	for (int32 i = 0; i < building->ResearchCost.Num(); i++) {
@@ -254,7 +260,7 @@ bool APController::HasResearchForBuilding(ABuilding* building) {
 }
 
 bool APController::HasBuildingsForThisBuilding(ABuilding* building) {
-
+	Debug("Going to look for it");
 
 
 	if (building->GetNeededBuildingList().Num() == 0) return true;
@@ -520,7 +526,7 @@ TArray<UResearcher*> APController::GetResearchedList() {
 
 void APController::AddToResearchList(UResearcher* research) {
 	for (int32 i = 0; i < ResearchedList.Num(); i++) {
-		if (research->Name == ResearchedList[i]->Name) {
+		if (research->Name == ResearchedList[i]->Name && research->CurrentVersion == ResearchedList[i]->CurrentVersion) {
 			Debug("Already added this research");
 			return;
 		}

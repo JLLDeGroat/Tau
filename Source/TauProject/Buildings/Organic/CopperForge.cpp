@@ -60,7 +60,7 @@ ACopperForge::ACopperForge()
 	IsPlaced = false;
 
 	BuildingType = EAvailableBuildings::B_CopperForge;
-
+	PostConstructionMethod();
 }
 
 // Called when the game starts or when spawned

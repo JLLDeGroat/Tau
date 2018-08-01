@@ -217,8 +217,7 @@ TArray<UResearcher*> UBuildingStructs::SetBuildingResearchCost(TEnumAsByte<EAvai
 }
 
 TArray<UResearcher*> UBuildingStructs::SetBuildingsResearchableItems(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType) {
-	TArray<UResearcher*> resList;
-	resList = UResearchLibrary::ResearchList();
+	TArray<UResearcher*> resList;	
 
 	switch (buildingType) {
 

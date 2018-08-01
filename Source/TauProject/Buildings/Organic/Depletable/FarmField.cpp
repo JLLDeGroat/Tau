@@ -73,6 +73,7 @@ AFarmField::AFarmField()
 	SetRadiusPlaceActor(EAvailableBuildings::B_Farm);
 	SetRadiusPlaceAmount(650);
 
+	PostConstructionMethod();
 }
 
 // Called when the game starts or when spawned

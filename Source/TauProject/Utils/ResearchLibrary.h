@@ -25,4 +25,12 @@ public:
 	static UResearcher* GetResearch(TEnumAsByte<EResearchList::EResearhables> researchType);
 	static UResearcher* GetResearch(TEnumAsByte<EResearchList::EResearhables> researchType, TArray<UResearcher*> researchList);
 
+	static UResearcher* GetResearchItemForHover(TEnumAsByte<EResearchList::EResearhables> researchType, TArray<UResearcher*> buildingResearch, TArray<UResearcher*> completedResearch);
+	static UResearcher* GetResearchItemForResearching(TEnumAsByte<EResearchList::EResearhables> researchType, TArray<UResearcher*> completedResearch);
+
+	static TArray<UResourceCost*> GetCostOfResearch(UResearcher* research, TArray<UResearcher*> completedResearchOfType);
+
+	static float GetCurrentResearchVersion(TArray<UResearcher*> researchOfType, UResearcher* research);
+
+	static void Debug(FString message);
 };

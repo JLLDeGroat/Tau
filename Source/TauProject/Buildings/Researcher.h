@@ -44,7 +44,13 @@ public:
 		FString Name;
 
 	UPROPERTY()
+		FString DisplayName;
+
+	UPROPERTY()
 		TArray<UResourceCost*> ResearchCost;
+
+	UPROPERTY()
+		TArray<UResourceCost*> AdditiveResearchCost;
 
 	UPROPERTY()
 		TEnumAsByte<EResearchList::EResearhables> ResearchType;
@@ -59,10 +65,16 @@ public:
 		float ChildrenVersions;
 
 	UPROPERTY()
+		float CurrentVersion;
+
+	UPROPERTY()
 		bool HasStarted;
 
 	UPROPERTY()
 		bool IsFinished;
+
+	UPROPERTY()
+		bool IsCompleted;
 
 	void UpdateResearch(float DeltaTime);
 
@@ -78,6 +90,11 @@ public:
 	UFUNCTION(BlueprintCallable)
 		FString GetResearchCostUIString();
 
+	UFUNCTION(BlueprintCallable)
+		bool GetIsCompletedResearch();
+
+	UFUNCTION(BlueprintCallable)
+		FString GetDisplayName();
 
 	bool GetHasStarted();
 	bool GetIsFinished();

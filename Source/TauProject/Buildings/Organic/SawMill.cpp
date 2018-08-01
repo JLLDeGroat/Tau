@@ -59,6 +59,7 @@ ASawMill::ASawMill() {
 
 	IsPlaced = false;
 	BuildingType = EAvailableBuildings::B_SawMill;
+	PostConstructionMethod();
 }
 
 

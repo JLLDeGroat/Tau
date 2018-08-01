@@ -64,6 +64,9 @@ bool UResearcher::GetIsFinished() {
 	return this->IsFinished;
 }
 
+FString UResearcher::GetDisplayName() {
+	return this->DisplayName;
+}
 
 void UResearcher::SetHasStarted(bool val) {
 	this->HasStarted = val;
@@ -71,4 +74,8 @@ void UResearcher::SetHasStarted(bool val) {
 
 void UResearcher::SetIsFinished(bool val) {
 	this->IsFinished = val;
+}
+
+bool UResearcher::GetIsCompletedResearch() {
+	return IsCompleted;
 }

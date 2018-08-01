@@ -59,7 +59,7 @@ AStorage::AStorage()
 
 
 	BuildingType = EAvailableBuildings::B_Storage;
-
+	PostConstructionMethod();
 }
 
 // Called when the game starts or when spawned

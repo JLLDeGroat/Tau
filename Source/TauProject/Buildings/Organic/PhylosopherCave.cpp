@@ -60,6 +60,7 @@ APhylosopherCave::APhylosopherCave() {
 	IsPlaced = false;
 
 	BuildingType = EAvailableBuildings::B_PhylosopherCave;
+	PostConstructionMethod();
 
 }
 

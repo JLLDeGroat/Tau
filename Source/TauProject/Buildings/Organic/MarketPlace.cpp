@@ -61,6 +61,7 @@ AMarketPlace::AMarketPlace() {
 	IsPlaced = false;
 
 	BuildingType = EAvailableBuildings::B_MarketPlace;
+	PostConstructionMethod();
 }
 
 

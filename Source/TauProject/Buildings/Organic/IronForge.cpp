@@ -62,7 +62,8 @@ AIronForge::AIronForge()
 
 	IsPlaced = false;
 
-	BuildingType = EAvailableBuildings::B_IronForge;
+	BuildingType = EAvailableBuildings::B_IronForge;	
+	PostConstructionMethod();
 }
 
 // Called when the game starts or when spawned

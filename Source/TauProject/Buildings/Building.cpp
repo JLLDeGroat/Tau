@@ -13,6 +13,8 @@
 #include "Controller/PController.h"
 #include "Buildings/Converter.h"
 
+#include "Utils/ResearchLibrary.h"
+
 
 #include "Organic/Barracks.h"
 #include "Organic/Storage.h"
@@ -41,14 +43,10 @@ ABuilding::ABuilding()
 
 	Box = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("BuildingBody"));
 	Box->SetupAttachment(RootComponent);
+
 }
 
-// Called when the game starts or when spawned
-void ABuilding::BeginPlay()
-{
-	Super::BeginPlay();
-
-
+void ABuilding::PostConstructionMethod() {
 	SetIsResearchBuilding(UBuildingStructs::SetIsResearcherBuilding(this->BuildingType));
 	SetIsConverter(UBuildingStructs::SetIsConverterBuilding(this->BuildingType));
 
@@ -56,15 +54,23 @@ void ABuilding::BeginPlay()
 	this->MaxHealth = UBuildingStructs::SetBuildingHealth(this->BuildingType);
 	this->Description = UBuildingStructs::SetBuildingDescription(this->BuildingType);
 	this->Health = 1;
+	this->ResearchObject = UBuildingStructs::SetBuildingsResearchableItems(this->BuildingType);
 
 	SetBuildCosts(UBuildingStructs::SetBuildingResourceCost(this->BuildingType));
 	SetResearchCosts(UBuildingStructs::SetBuildingResearchCost(this->BuildingType));
 	SetNeededBuildingList(UBuildingStructs::SetBuildingsBuildingNeededList(this->BuildingType));
-	
-	if (this->IsConverter) 
+
+	if (this->IsConverter)
 		this->ResourceConverter = UBuildingStructs::SetConversionIfConverterBuilding(this->BuildingType);
 
 	this->CanStore = UBuildingStructs::SetBuildingCanStore(this->BuildingType);
+}
+
+// Called when the game starts or when spawned
+void ABuilding::BeginPlay()
+{
+	Super::BeginPlay();
+
 }
 
 // Called every frame
@@ -129,6 +135,7 @@ float ABuilding::GetMaxHealth() {
 #pragma region widget properties
 
 FString ABuilding::GetDescription() {
+	//return UBuildingStructs::SetBuildingDescription(this->BuildingType);
 	return Description;
 }
 
@@ -137,11 +144,14 @@ void ABuilding::SetDescription(FString desc) {
 }
 
 FString ABuilding::GetHumanName() {
+	//return UBuildingStructs::SetBuildingName(this->BuildingType);
 	return BuildingName;
 }
 
 FString ABuilding::GetBuildCostAsUIString() {
 	FString CostListString = "";
+
+	//TArray<UResourceCost*> buildingCost = UBuildingStructs::SetBuildingResourceCost(this->BuildingType);
 
 	for (int32 i = 0; i < BuildCost.Num(); i++) {
 		CostListString += FString::SanitizeFloat(BuildCost[i]->Amount) + "x " + BuildCost[i]->GetResourceType() + "   ";
@@ -576,6 +586,10 @@ UResearcher* ABuilding::GetResearchItemByName(FString name) {
 	return nullptr;
 }
 
+UResearcher* ABuilding::GetUIResearchByType(TEnumAsByte<EResearchList::EResearhables> researchType) {
+	return UResearchLibrary::GetResearchItemForHover(researchType, this->GetResearchList(), Cast<APController>(control)->GetResearchedList());
+}
+
 bool ABuilding::GetIsResearchBuilding() {
 	return CanResearch;
 }
@@ -584,35 +598,30 @@ void ABuilding::SetIsResearchBuilding(bool val) {
 	CanResearch = val;
 }
 
-void ABuilding::BeginResearching(FString Name) {
-	UResearcher* thisResearch = nullptr;
-	APController* pCon = Cast<APController>(control);
+void ABuilding::BeginResearching(TEnumAsByte<EResearchList::EResearhables> researchType) {
+	APController* controller = Cast<APController>(control);
 
-	for (int32 i = 0; i < ResearchObject.Num(); i++) {
-		Debug(ResearchObject[i]->GetResearchName());
-		if (ResearchObject[i]->GetResearchName() == Name) {
-			thisResearch = ResearchObject[i];
-			break;
-		}
+	UResearcher* toResearch = UResearchLibrary::GetResearchItemForResearching(researchType, controller->GetResearchedList());
+
+	if (toResearch == nullptr) {
+		controller->HudMessage->ShowMessage("Finished this research tree");
+		Debug("Could not find suitable research");
 	}
 
-	if (thisResearch == nullptr) {
-		Debug("Found no research item of name" + Name);
+	if (!controller->resources->CanAffordResourceList(toResearch->AdditiveResearchCost)) {
+		controller->HudMessage->ShowMessage("Can not afford to research " + toResearch->DisplayName);
+		Debug("Can not afford Research");
 		return;
 	}
 
-	if (!pCon->resources->CanAffordResourceList(thisResearch->ResearchCost)) {
-		Debug("Can not afford research");
-		return;
-	}
-
-	pCon->resources->AffectResouceListOnCounter(thisResearch->ResearchCost, false); // remove resource from player controller
-	CurrentlyResearchingObject = thisResearch;
+	controller->resources->AffectResouceListOnCounter(toResearch->AdditiveResearchCost, false);
+	CurrentlyResearchingObject = toResearch;
 	CurrentlyResearchingObject->SetHasStarted(true);
 	CurrentlyResearching = true;
 
-	Debug("Started Researching");
+	Debug("Started Researching " + toResearch->DisplayName);
 }
+
 
 void ABuilding::ResearchTick(float DeltaTime) {
 	CurrentlyResearchingObject->UpdateResearch(DeltaTime);

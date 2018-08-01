@@ -21,6 +21,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	void PostConstructionMethod();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -276,6 +278,9 @@ public:
 		UResearcher* GetResearchItemByName(FString name);
 
 	UFUNCTION(BlueprintCallable)
+		UResearcher* GetUIResearchByType(TEnumAsByte<EResearchList::EResearhables> researchType);
+
+	UFUNCTION(BlueprintCallable)
 		FString GetResearchCostAsUIString(FString name);
 
 	UFUNCTION(BlueprintCallable)
@@ -299,8 +304,8 @@ public:
 
 	void SetIsResearchBuilding(bool val);
 
-	UFUNCTION(BluePrintCallable)
-		void BeginResearching(FString name);
+	UFUNCTION(BlueprintCallable)
+		void BeginResearching(TEnumAsByte<EResearchList::EResearhables> researchType);
 
 	void ResearchTick(float DeltaTime);
 

@@ -63,7 +63,7 @@ AFarm::AFarm()
 	BuildingType = EAvailableBuildings::B_Farm;
 
 	IsPlaced = false;
-	
+	PostConstructionMethod();
 }
 
 // Called when the game starts or when spawned

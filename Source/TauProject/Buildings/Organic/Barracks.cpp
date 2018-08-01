@@ -62,6 +62,7 @@ ABarracks::ABarracks()
 
 
 	BuildingType = EAvailableBuildings::B_Barracks;	
+	PostConstructionMethod();
 }
 
 // Called when the game starts or when spawned
