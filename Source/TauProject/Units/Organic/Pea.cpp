@@ -27,6 +27,7 @@ APea::APea()
 	GetCapsuleComponent()->InitCapsuleSize(_capradius, _capheight);
 	GetCapsuleComponent()->bGenerateOverlapEvents = true;
 
+
 	CurrentMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("UnitBody"));
 	CurrentMesh->SetupAttachment(RootComponent);
 	CurrentMesh->SetRelativeRotation(FRotator(0, 90, 0)); // rotate mesh to fit direction
@@ -39,13 +40,13 @@ APea::APea()
 	
 
 	selectedDecal->SetRelativeLocation(FVector(0, 0, -_capheight));
-	highlightedDecal->SetRelativeLocation(FVector(0, 0, -_capheight));
+	
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeleMesh(TEXT("/Game/Models/Units/Pea/IdlePea_Anim.IdlePea_Anim"));
 	if (SkeleMesh.Succeeded()) CurrentMesh->SetSkeletalMesh(SkeleMesh.Object);
 
-	static ConstructorHelpers::FObjectFinder<UAnimBlueprint> AnimObj(TEXT("/Game/Blueprints/AnimationBp/Pea_Anim_Bp.Pea_Anim_Bp"));
-	if (AnimObj.Succeeded()) CurrentMesh->SetAnimInstanceClass(AnimObj.Object->GeneratedClass);
+	//static ConstructorHelpers::FObjectFinder<UAnimBlueprint> AnimObj(TEXT("/Game/Blueprints/AnimationBp/Pea_Anim_Bp.Pea_Anim_Bp"));
+	//if (AnimObj.Succeeded()) CurrentMesh->SetAnimInstanceClass(AnimObj.Object->GeneratedClass);
 	
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Rotate character to moving direction when moving
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);

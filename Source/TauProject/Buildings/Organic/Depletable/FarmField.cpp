@@ -72,7 +72,6 @@ AFarmField::AFarmField()
 	SetRadiusPlaceRules(true);
 	SetRadiusPlaceActor(EAvailableBuildings::B_Farm);
 	SetRadiusPlaceAmount(650);
-
 	PostConstructionMethod();
 }
 

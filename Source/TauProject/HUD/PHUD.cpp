@@ -53,52 +53,12 @@ void APHUD::InitializeWidgets() {
 		//UUserWidget* MyWidget = CreateWidget<UUserWidget>(GetWorld(), MyWidgetClass);
 		MainBottomWidget = CreateWidget<UUserWidget>(GetWorld(), BottomUIWidgetClass);
 		MainBottomWidget->AddToViewport();
-		ShowWidget(MainBottomWidget);
+		
 		// Do stuff with MyWidget
 	}
 	else {
 		Debug("Failed To Get Main Bottom Widget");
 	}
-}
-
-void APHUD::ShowWidget(TEnumAsByte<EWidgets::EWidgetToShow> widget) {
-	UUserWidget* widgetToShow = GetWidget(widget);
-	ShowWidget(widgetToShow);
-}
-
-void APHUD::ShowWidget(UUserWidget* widget) {
-	widget->SetVisibility(ESlateVisibility::Visible);
-}
-
-void APHUD::HideWidget(UUserWidget* widget) {
-	widget->SetVisibility(ESlateVisibility::Hidden);
-}
-
-void APHUD::HideWidget(TEnumAsByte<EWidgets::EWidgetToShow> widget) {
-	UUserWidget* widgetToHide = GetWidget(widget);
-	HideWidget(widgetToHide);
-}
-
-void APHUD::HideAllWidgets() {
-	//UUserWidget* swidget = GetWidget(EWidgets::EWidgetToShow::W_Selection);
-	//UUserWidget* bwidget = GetWidget(EWidgets::EWidgetToShow::W_Barracks);
-	//HideWidget(swidget);
-	//HideWidget(bwidget);
-}
-
-UUserWidget* APHUD::GetWidget(TEnumAsByte<EWidgets::EWidgetToShow> widget) {
-	switch (widget) {
-		/*case EWidgets::EWidgetToShow::W_Selection:
-			return SelectionWidget;
-		case EWidgets::EWidgetToShow::W_Barracks:
-			return BarracksWidget;
-		case EWidgets::EWidgetToShow::W_Details:
-			return DetailsWidget;
-*/
-		case EWidgets::EWidgetToShow::W_None:
-			return nullptr;
-	}
-	return nullptr;
 }
 
 #pragma endregion

@@ -3,6 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Units/Units.h"
+#include "Units/UnitStructs.h"
 #include "UObject/NoExportTypes.h"
 #include "ControllerStructs.generated.h"
 
@@ -13,16 +15,13 @@ UCLASS()
 class TAUPROJECT_API UControllerStructs : public UObject
 {
 	GENERATED_BODY()
+		UControllerStructs();
+public:
+
+	UFUNCTION(BlueprintCallable)
+		static AUnits* GetUnitForUIPopup(TEnumAsByte<EUnitList::All> unitType);
+
+
+
 };
 
-UENUM(BlueprintType)
-namespace EWidgets
-{
-	enum EWidgetToShow
-	{
-		W_Selection					UMETA(DisplayName = "Selection"),
-		W_Barracks					UMETA(DisplayName = "Barracks"),
-		W_Details					UMETA(DisplayName = "Details"),
-		W_None						UMETA(DisplayName = "None")
-	};
-}

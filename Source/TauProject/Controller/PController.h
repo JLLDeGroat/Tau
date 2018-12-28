@@ -7,13 +7,15 @@
 #include "ControllerStructs.h"
 #include "PlayerResource/All.h"
 #include "PlayerResource/EResource.h"
-#include "Selection/PlayerSelection.h"
 #include "Resources/Resource.h"
 #include "Utils/DetailsStringLibrary.h"
+#include "ControllerHud.h"
 #include "Buildings/Researcher.h"
 #include "ControllerHudMessages.h"
 #include "MarketHistory.h"
+#include "Enemy/EnemyObject.h"
 #include "PController.generated.h"
+
 UCLASS()
 class TAUPROJECT_API APController : public APlayerController
 {
@@ -49,18 +51,7 @@ public:
 
 	UPROPERTY()
 		TArray<AResource*> SelectedResources;
-
-	UPROPERTY()
-		AUnits* HighlightedUnit;
 	
-	#pragma region Widgets	
-	UPROPERTY(EditAnywhere)
-    TEnumAsByte<EWidgets::EWidgetToShow> WidgetToShow;
-
-	void SetWidgetToShow();
-	UFUNCTION(BlueprintCallable)
-	TEnumAsByte<EWidgets::EWidgetToShow> GetWidgetToShow();
-	#pragma endregion
 
 	#pragma region Widget Messages
 
@@ -89,8 +80,6 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 		TEnumAsByte<EResources::All> GetResourceFromString(FString name);
-
-	void HighlightHoveredUnit();
 
 	#pragma endregion
 
@@ -151,15 +140,15 @@ public:
 	#pragma endregion
 
 	#pragma region Hud Management
-
+		
 	UPROPERTY()
-		UPlayerSelection* SelectionDetails;
+		UControllerHud* ControllerHud;
 
 	void DetermineSelectedUnit();
 	void UpdateSelectedUnit();
 
 	UFUNCTION(BlueprintCallable)
-	UPlayerSelection* GetSelectionDetails();
+	UControllerHud* GetControllerHud();
 
 	UPROPERTY()
 		bool HasSelectedEntity;
@@ -214,8 +203,6 @@ public:
 
 
 
-
-
 	UFUNCTION(BlueprintCallable)
 		float GetResourceFromAmountFromSlider(float sliderVal, FString resourceFromName);
 	UFUNCTION(BlueprintCallable)
@@ -236,5 +223,6 @@ public:
 
 	#pragma endregion
 
+	
 	void Debug(FString string);
 };

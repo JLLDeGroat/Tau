@@ -4,12 +4,82 @@
 #include "PlayerResource/ResourceCost.h"
 #include "Utils/ResearchLibrary.h"
 
+#include "Buildings/Organic/Barracks.h"
+#include "Buildings/Organic/Storage.h"
+#include "Buildings/Organic/SawMill.h"
+#include "Buildings/Organic/Farm.h"
+#include "Buildings/Organic/IronForge.h"
+#include "Buildings/Organic/CopperForge.h"
+#include "Buildings/Organic/OreRefinery.h"
+#include "Buildings/Organic/MarketPlace.h"
+#include "Buildings/Organic/Depletable/FarmField.h"
+#include "Buildings/Organic/PhylosopherCave.h"
+#include "Buildings/Organic/TownCenter.h"
+
+#include "Buildings/Organic/Depletable/FarmField.h"
+
+#include "Units/Organic/Corn.h"
+#include "Units/Organic/Pea.h"
+#include "Units/Organic/Sprout.h"
 
 
 UBuildingStructs::UBuildingStructs() {
 
 }
 
+AActor* UBuildingStructs::FindOrSpawnBuilding(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> building, bool Find, UWorld* world) {
+	
+	switch (building) {
+
+	case EAvailableBuildings::EAvailableBuildings::B_Barracks:
+		if (Find) return NewObject<ABarracks>();
+		else return world->SpawnActor<ABarracks>();
+
+	case EAvailableBuildings::EAvailableBuildings::B_Storage:
+		if (Find) return NewObject<AStorage>();
+		else return world->SpawnActor<AStorage>();
+
+
+	case EAvailableBuildings::EAvailableBuildings::B_SawMill:
+		if (Find) return NewObject<ASawMill>();
+		else return world->SpawnActor<ASawMill>();
+
+
+	case EAvailableBuildings::EAvailableBuildings::B_Farm:
+		if (Find) return NewObject<AFarm>();
+		else return world->SpawnActor<AFarm>();
+
+	case EAvailableBuildings::EAvailableBuildings::B_IronForge:
+		if (Find) return NewObject<AIronForge>();
+		else return world->SpawnActor<AIronForge>();
+
+	case EAvailableBuildings::EAvailableBuildings::B_CopperForge:
+		if (Find) return NewObject<ACopperForge>();
+		else return world->SpawnActor<ACopperForge>();
+
+	case EAvailableBuildings::EAvailableBuildings::B_OreRefinery:
+		if (Find) return NewObject<AOreRefinery>();
+		else return world->SpawnActor<AOreRefinery>();
+
+	case EAvailableBuildings::EAvailableBuildings::B_MarketPlace:
+		if (Find) return NewObject<AMarketPlace>();
+		else return world->SpawnActor<AMarketPlace>();
+
+	case EAvailableBuildings::EAvailableBuildings::B_FarmLand:
+		if (Find) return NewObject<AFarmField>();
+		else return world->SpawnActor<AFarmField>();
+
+	case EAvailableBuildings::EAvailableBuildings::B_PhylosopherCave:
+		if (Find) return NewObject<APhylosopherCave>();
+		else return world->SpawnActor<APhylosopherCave>();
+
+	case EAvailableBuildings::EAvailableBuildings::B_None:
+		return nullptr;
+
+	default:
+		return nullptr;
+	}
+}
 
 
 FString UBuildingStructs::SetBuildingName(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType) {
@@ -238,6 +308,35 @@ TArray<UResearcher*> UBuildingStructs::SetBuildingsResearchableItems(TEnumAsByte
 	return resList;
 }
 
+TArray<AUnits*> UBuildingStructs::SetBuildingsSpawnableUnits(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType) {
+	TArray<AUnits*> list;
+	switch (buildingType) {
+	case EAvailableBuildings::B_Barracks:
+		list.Add(NewObject<APea>());
+		list.Add(NewObject<ACorn>());
+		list.Add(NewObject<ASprout>());
+		break;
+
+	default:
+		break;
+	}
+	return list;
+}
+
+TArray<AActor*> UBuildingStructs::SetBuildingsBuildableBuildings(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType) {
+	TArray<AActor*> list;
+
+	switch (buildingType) {
+
+	case EAvailableBuildings::B_Farm:		
+		list.Add(NewObject<AFarmField>());
+		break;
+
+	
+	}
+	return list;
+}
+
 TArray<FString> UBuildingStructs::SetBuildingsBuildingNeededList(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType) {
 	TArray<FString> buildingNameArray;
 	switch (buildingType) {
@@ -354,4 +453,10 @@ bool UBuildingStructs::SetBuildingCanStore(TEnumAsByte<EAvailableBuildings::EAva
 	default:
 		return false;
 	}
+}
+
+
+
+void UBuildingStructs::Debug(FString message) {
+	GEngine->AddOnScreenDebugMessage(-1, 10, FColor::Red, "UBuildingStructs.h: " + message);
 }

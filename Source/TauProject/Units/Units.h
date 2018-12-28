@@ -43,11 +43,6 @@ public:
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 		UMaterial* selectedDecalMaterial;
 
-	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-		UDecalComponent* highlightedDecal;
-
-	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-		UMaterial* highlightedDecalMaterial;
 
 	#pragma endregion
 
@@ -62,7 +57,6 @@ public:
 	FString GetType();
 	float GetHealth();
 	float GetMaxHealth();
-
 	#pragma endregion
 
 
@@ -80,12 +74,14 @@ public:
 	UFUNCTION(BlueprintCallable)
 		FString GetBuildCostAsUIString();
 
+	UFUNCTION(BlueprintCallable)
+		TEnumAsByte<EUnitList::All> GetUnitType();
+
 	void SetDescription(FString desc);
 
 	UPROPERTY()
 		bool bIsHighlighted;
 	#pragma endregion
-
 
 	#pragma region Movement And Instructions
 	void ResetUnitInstructionsOnMove();
@@ -109,8 +105,6 @@ public:
 	void HideDecals();
 	void ShowDecals();
 
-	void ShowHighlighDecals();
-	void HideHighlightDecails();
 		
 	#pragma endregion
 
@@ -179,6 +173,8 @@ public:
 
 	#pragma region Combat 
 
+
+
 	UPROPERTY()
 		AWeapon* rArmWeapon;
 
@@ -208,6 +204,39 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = GlobalUnit)
 		float CriticalMultiplier;
+
+	//range units
+	bool bIsRanged;
+	
+	bool bIsAiming;
+	bool bIsReloading;	
+	bool bCanFire;
+	bool bHasFired;
+
+	UFUNCTION(BlueprintCallable, Category = RangedUnit)
+		bool GetIsAiming();
+
+	UFUNCTION(BlueprintCallable, Category = RangedUnit)
+		void SetIsAiming(bool aiming);
+
+	UFUNCTION(BlueprintCallable, Category = RangedUnit)
+		bool GetIsReloading();
+
+	UFUNCTION(BlueprintCallable, Category = RangedUnit)
+		void SetIsReloading(bool reloading);
+
+	UFUNCTION(BlueprintCallable, Category = RangedUnit)
+		bool GetCanFire();
+
+	UFUNCTION(BlueprintCallable, Category = RangedUnit)
+		void SetCanFire(bool fire);
+
+	UFUNCTION(BlueprintCallable, Category = RangedUnit)
+		bool GetHasFired();
+
+	UFUNCTION(BlueprintCallable, Category = RangedUnit)
+		void SetHasFired(bool val);
+
 
 	UPROPERTY()
 		TArray<AActor*> UnitsInSight;
@@ -244,6 +273,8 @@ public:
 	void AttackTick();
 
 	void AttemptToFindNewAttackTarget();
+
+	void CleanUpUnitsWithinRange();
 	#pragma endregion
 
 	#pragma region Combar Armaments
@@ -253,9 +284,6 @@ public:
 
 	UPROPERTY()
 		TEnumAsByte<EUnitCombatType::ArmamentType> CombatType;
-
-	
-
 
 	#pragma endregion
 	
@@ -277,7 +305,13 @@ public:
 	void AUnits::SetUnitOwner(TEnumAsByte<EUnitOwnerships::EUnitOwnerShip> newowner);
 
 	AUnits* GetUnitClassOfType(TEnumAsByte<EUnitList::All> unit);
-	AUnits* AUnits::SpawnUnitOfType(TEnumAsByte<EUnitList::All> unit, FVector spawnLocation, FRotator rotation, UWorld* ThisWorld);
+	AUnits* SpawnUnitOfType(TEnumAsByte<EUnitList::All> unit, FVector spawnLocation, FRotator rotation, UWorld* ThisWorld);
+
+	UPROPERTY()
+		TArray<AActor*> BuildableBuildings;
+
+	UFUNCTION(BlueprintCallable)
+		TArray<AActor*> GetBuildableBuildings();
 	#pragma endregion
 
 	#pragma region overlaps

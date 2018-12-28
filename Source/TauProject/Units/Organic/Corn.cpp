@@ -38,7 +38,6 @@ ACorn::ACorn()
 	CurrentMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);
 
 	selectedDecal->SetRelativeLocation(FVector(0, 0, -_capheight));
-	highlightedDecal->SetRelativeLocation(FVector(0, 0, -_capheight));
 
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SkeleMesh(TEXT("/Game/Models/Units/Corn/Idle_Corn.Idle_Corn"));
 	if (SkeleMesh.Succeeded()) CurrentMesh->SetSkeletalMesh(SkeleMesh.Object);

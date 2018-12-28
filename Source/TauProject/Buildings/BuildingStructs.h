@@ -1,14 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
-
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "Researcher.h"
 #include "PlayerResource/ResourceCost.h"
+#include "Units/Units.h"
 #include "Converter.h"
+#include "Engine.h"
 #include "BuildingStructs.generated.h"
-
 /**
  * 
  */
@@ -74,6 +73,7 @@ class TAUPROJECT_API UBuildingStructs : public UObject
 
 public:
 
+	static AActor* FindOrSpawnBuilding(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> building, bool Find, UWorld* world);
 
 	static FString SetBuildingName(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType);
 
@@ -85,7 +85,14 @@ public:
 
 	static TArray<UResearcher*> SetBuildingResearchCost(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType);
 
+	UFUNCTION(BlueprintCallable, Category = "Building Helpers")
 	static TArray<UResearcher*> SetBuildingsResearchableItems(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType);
+
+	UFUNCTION(BlueprintCallable, Category = "Building Helpers")
+	static TArray<AUnits*> SetBuildingsSpawnableUnits(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType);
+
+	UFUNCTION(BlueprintCallable, Category = "Building Helpers")
+	static TArray<AActor*> SetBuildingsBuildableBuildings(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType);
 
 	static TArray<FString> SetBuildingsBuildingNeededList(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType);
 
@@ -97,4 +104,6 @@ public:
 
 	static bool SetBuildingCanStore(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> buildingType);
 
+
+	static void Debug(FString message);
 };

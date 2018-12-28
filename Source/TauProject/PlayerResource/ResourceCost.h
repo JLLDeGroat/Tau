@@ -33,4 +33,7 @@ public:
 	
 
 	UResourceCost* Setup(TEnumAsByte<EResources::All> res, float amount);
+
+	UFUNCTION(BlueprintCallable, category = "Resource Utils")
+		static FString ResourceListAsUIString(TArray<UResourceCost*> arrayList);
 };

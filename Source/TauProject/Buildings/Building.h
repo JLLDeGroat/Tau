@@ -6,7 +6,6 @@
 #include "Units/Units.h"
 #include "Units/UnitStructs.h" 
 #include "Buildings/Researcher.h"
-#include "Buildings/Researcher.h"
 #include "Building.generated.h"
 UCLASS()
 class TAUPROJECT_API ABuilding : public AActor
@@ -72,6 +71,9 @@ public:
 	FString GetType();
 	float GetHealth();
 	float GetMaxHealth();
+
+	UFUNCTION(BlueprintCallable)
+		TEnumAsByte<EAvailableBuildings::EAvailableBuildings> GetBuildingType();
 
 	#pragma endregion
 
@@ -203,20 +205,27 @@ public:
 	void SetBuildingState(TEnumAsByte<EBuildStates::EBuildingStates> state);
 	TEnumAsByte<EBuildStates::EBuildingStates> GetCurrentState();
 
-	TEnumAsByte<EAvailableBuildings::EAvailableBuildings> GetBuildingType();
-
 	#pragma endregion
 	
-	#pragma region Creating And Spawning Units
+	#pragma region Creating And Spawning Units & Buildings
+
+	UPROPERTY()
+		TArray<AUnits*> SpawnableUnits;
+
+	UPROPERTY()
+		TArray<ABuilding*> SpawnableBuildings;
 
 	UPROPERTY()
 		TArray<UObject*> SpawnList;
 
-	void AddUnitToSpawnList(TEnumAsByte<EUnitList::All> unitType, AController* control);
-	
+	UFUNCTION(BlueprintCallable)
+	void AddUnitToSpawnList(TEnumAsByte<EUnitList::All> unitType);	
 
 	void SpawnUnitTick(float DeltaTime);
+
+
 	#pragma endregion
+
 
 	#pragma region Converting Resources
 	UPROPERTY()
@@ -264,8 +273,6 @@ public:
 
 	#pragma region Utils
 
-	ABuilding* FindOrSpawnBuilding(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> building, bool Find, UWorld* world);
-
 	void SetMeshOnState();
 	#pragma endregion
 
@@ -299,6 +306,9 @@ public:
 
 	UPROPERTY()
 		bool CurrentlyResearching;
+
+	UFUNCTION()
+		bool GetIsCurrentlyResearching();
 
 	UResearcher* CurrentlyResearchingObject;
 

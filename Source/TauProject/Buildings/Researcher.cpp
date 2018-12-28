@@ -23,7 +23,6 @@ UResearcher* UResearcher::Setup(FString name, FString desc, float researchTime, 
 	return this;
 }
 
-
 void UResearcher::UpdateResearch(float DeltaTime) {
 	if (HasStarted) {
 		//only do this if its started
@@ -52,8 +51,21 @@ FString UResearcher::GetResearchCostUIString() {
 	return CostListString;
 }
 
+FString UResearcher::GetResearchAdditiveCostUIString() {
+	FString CostListString = "";
+
+	for (int32 i = 0; i < this->AdditiveResearchCost.Num(); i++) {
+		CostListString += FString::SanitizeFloat(this->AdditiveResearchCost[i]->Amount) + "x " + this->AdditiveResearchCost[i]->GetResourceType() + "   ";
+	}
+	return CostListString;
+}
+
 TArray<UResourceCost*> UResearcher::GetResourceCost() {
 	return ResearchCost;
+}
+
+TEnumAsByte<EResearchList::EResearhables> UResearcher::GetResearchType() {
+	return ResearchType;
 }
 
 bool UResearcher::GetHasStarted() {

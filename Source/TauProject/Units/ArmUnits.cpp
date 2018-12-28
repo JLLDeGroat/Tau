@@ -9,6 +9,8 @@
 #include "Weapons/Weapon.h"
 //swords
 #include "Weapons/Swords/BasicSword.h"
+//Guns
+#include "Weapons/Ranged/Musket.h"
 //harvesting
 #include "Weapons/Harvesting/PickAxe.h"
 
@@ -32,15 +34,25 @@ void UArmUnits::ArmSpawnedUnit(UWorld* world, AActor* unitActor, USkeletalMeshCo
 
 
 
-		if (unit->bIsArmed) { //is soldier unit and should be equipped with soldier stuff
+		if (unit->bIsArmed && unit->ThisUnitType == EUnitList::UL_Pea) { //is soldier unit and should be equipped with soldier stuff
 			rightArm = world->SpawnActor<ABasicSword>();
 			rightArm->AttachToComponent(parentMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, rightArmSocket);
 			rightArm->SetActorRelativeRotation(FRotator(90, -90, 0)); // position to point foward
+			unit->rArmWeapon = rightArm;
 		}
+
+		if (unit->bIsArmed && unit->ThisUnitType == EUnitList::UL_MusketPea) {
+			rightArm = world->SpawnActor<AMusket>();
+			rightArm->AttachToComponent(parentMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, rightArmSocket);
+			rightArm->SetActorRelativeRotation(FRotator(90, -90, 0));
+			unit->rArmWeapon = rightArm;
+		}
+
 		if (unit->CanHarvest) { // is harvester unit, equip with pickaxe			
 			rightArm = world->SpawnActor<APickAxe>();
 			rightArm->AttachToComponent(parentMesh, FAttachmentTransformRules::SnapToTargetNotIncludingScale, rightArmSocket);
 			rightArm->SetActorRelativeRotation(FRotator(90, -90, 0)); // position to point foward
+			unit->rArmWeapon = rightArm;
 		}
 	}
 }

@@ -6,7 +6,6 @@
 #include "PlayerResource/ResourceCost.h"
 #include "UnitStructs.generated.h"
 
-
 UENUM(BlueprintType)
 namespace EUnitOwnerships
 {
@@ -60,6 +59,7 @@ namespace EUnitList
 		UL_None						UMETA(DisplayName = "None"),
 		UL_Corn						UMETA(DisplayName = "Corn"),
 		UL_Pea						UMETA(DisplayName = "Pea"),
+		UL_MusketPea				UMETA(DisplayName = "MusketPea"),
 		UL_Sprout					UMETA(DisplayName = "Sprout")
 	};
 }
@@ -131,8 +131,21 @@ public:
 
 	static float GetInitialLineOfSight(TEnumAsByte<EUnitList::All> unit);
 
+	static bool SetIsUnitRanged(TEnumAsByte<EUnitList::All> unit);
+
 	static bool GetIsArmedUnit(TEnumAsByte<EUnitList::All> unit);
 
 	static TArray<UResourceCost*> GetInitialBuildCostArray(TEnumAsByte<EUnitList::All> unit);
+
+	static FString GetUnitDescription(TEnumAsByte<EUnitList::All> unit);
+
+	static FString GetUnitDisplayName(TEnumAsByte<EUnitList::All> unit);
+
+	static AActor* GetUnitClass(TEnumAsByte<EUnitList::All> unit);
+
+	UFUNCTION(BlueprintCallable, category = "Hud Buttons")
+		static TArray<AActor*> SetUnitsBuildableBuildings(TEnumAsByte<EUnitList::All> unit);
+
+	static void Debug(FString message);
 
 };

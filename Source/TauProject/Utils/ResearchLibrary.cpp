@@ -27,7 +27,6 @@ UResearcher* UResearchLibrary::GetResearch(TEnumAsByte<EResearchList::EResearhab
 UResearcher* UResearchLibrary::GetResearchItemForHover(TEnumAsByte<EResearchList::EResearhables> researchType, TArray<UResearcher*> buildingResearch, TArray<UResearcher*> completedResearch) {
 	
 	UResearcher* research = nullptr;
-	Debug(FString::SanitizeFloat(buildingResearch.Num()));
 	for (int32 i = 0; i < buildingResearch.Num(); i++) {		
 		if (buildingResearch[i]->ResearchType == researchType) 
 			research = buildingResearch[i];
@@ -46,10 +45,10 @@ UResearcher* UResearchLibrary::GetResearchItemForHover(TEnumAsByte<EResearchList
 		}
 	}
 
-	if (completedResearch.Num() < research->ChildrenVersions) {
+	if (completedResearchOfThisType.Num() < research->ChildrenVersions) {
 		//valid one
 		FString researchVersion = "";
-		if(completedResearch.Num() != 0) researchVersion = FString::SanitizeFloat(completedResearch.Num(), 0);
+		if(completedResearchOfThisType.Num() != 0) researchVersion = FString::SanitizeFloat(completedResearchOfThisType.Num(), 0);
 		research->DisplayName = research->Name + " " + researchVersion;
 		research->AdditiveResearchCost = GetCostOfResearch(research, completedResearchOfThisType);
 	}

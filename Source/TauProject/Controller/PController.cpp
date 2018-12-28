@@ -35,11 +35,11 @@
 #include "PlayerResource/All.h"
 #include "PlayerResource/ResourceCost.h"
 
-#include "Selection/PlayerSelection.h"
-
 #include "Utils/DetailsStringLibrary.h"
 
 #include "Utils/MarketTask.h"
+
+#include "Buildings/BuildingStructs.h"
 
 #pragma region Basic
 
@@ -77,6 +77,8 @@ void APController::BeginPlay() {
 		if (unit->GetUnitOwner() == EUnitOwnerships::UO_Player) unit->SetController(this);
 	}
 	ActivityLibrary = NewObject<UDetailsStringLibrary>();
+	ControllerHud = NewObject<UControllerHud>();
+	ControllerHud->SetController(this);
 }
 
 
@@ -89,7 +91,6 @@ void APController::Tick(float DeltaTime) {
 
 	UpdateMarket(DeltaTime);
 
-	HighlightHoveredUnit();
 }
 
 #pragma endregion
@@ -127,7 +128,15 @@ void APController::LeftMouseClick() {
 
 void APController::LeftMouseClickRelease() {
 	Hudptr->bIsSelecting = false;
-	SelectedUnits = Hudptr->SelectedUnits;
+
+	//only get the units owned by controller
+	SelectedUnits.Empty();
+	for (int32 i = 0; i < Hudptr->SelectedUnits.Num(); i++) {
+		if (Hudptr->SelectedUnits[i]->UnitOwner == EUnitOwnerships::UO_Player) {
+			SelectedUnits.Add(Hudptr->SelectedUnits[i]);
+		}
+	}
+	
 	SelectedBuildings = Hudptr->SelectedBuildings;
 	SelectedResources = Hudptr->SelectedResources;
 	//SetWidgetToShow();
@@ -143,7 +152,6 @@ void APController::RightMouseClick() {
 
 void APController::RightMouseClickRelease() {
 	if (SelectedUnits.Num() > 0) {
-
 		// get hit result of Click
 		FHitResult Hit;
 		GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, Hit);
@@ -205,8 +213,12 @@ void APController::BeginPlaceBuilding(TEnumAsByte<EAvailableBuildings::EAvailabl
 		BuildingToPlace->Destroy();
 		BuildingToPlace = nullptr;
 	}
-
-	BuildingToPlace = NewObject<ABuilding>()->FindOrSpawnBuilding(EBuilding, true, this->GetWorld()); // FindOrSpawnBuilding(EBuilding, true); // find
+	
+	if (ABuilding* building = Cast<ABuilding>(UBuildingStructs::FindOrSpawnBuilding(EBuilding, true, this->GetWorld()))) {
+		BuildingToPlace = building;
+	}
+	
+	//BuildingToPlace = NewObject<ABuilding>()->FindOrSpawnBuilding(EBuilding, true, this->GetWorld()); // FindOrSpawnBuilding(EBuilding, true); // find
 	if (BuildingToPlace == nullptr) {
 		Debug("Building returned Null");
 		return;
@@ -217,8 +229,10 @@ void APController::BeginPlaceBuilding(TEnumAsByte<EAvailableBuildings::EAvailabl
 	if (!CanBuyBuilding(BuildingToPlace) || !BuildingToPlace->SpecialSpawnConditionsMet()
 		|| !HasResearchForBuilding(BuildingToPlace) || !HasBuildingsForThisBuilding(BuildingToPlace)
 		) return; // found no building or can not afford or adheres to special rules
+	
 
-	BuildingToPlace = BuildingToPlace->FindOrSpawnBuilding(EBuilding, false, GetWorld()); // spawn
+	BuildingToPlace = Cast<ABuilding>(UBuildingStructs::FindOrSpawnBuilding(EBuilding, false, this->GetWorld()));
+	//BuildingToPlace = BuildingToPlace->FindOrSpawnBuilding(EBuilding, false, GetWorld()); // spawn
 	BuildingToPlace->SetPlayerController(this);
 	IsPlacingBuilding = true;
 
@@ -310,27 +324,16 @@ void APController::PlaceBuilding() {
 	IsPlacingBuilding = false;
 	BuildingToPlace->PlaceBuilding();
 
-	AddToOwnedBuildings(BuildingToPlace);
-
-
-
 	resources->AffectResouceListOnCounter(BuildingToPlace->GetBuildCost(), false);
 
 	for (int32 i = 0; i < SelectedUnits.Num(); i++) {
 		if (SelectedUnits[i]->CanBuild) {
 			SelectedUnits[i]->MoveUnit(BuildingToPlace, BuildingToPlace->GetActorLocation(), i, SelectedUnits.Num());
-			//Cast<APea>(SelectedUnits[i]).
-			//SelectedUnits[i]->SetUnitInstruction(EUnitInstructions::UI_Construct, "building", ToSpawn, ToSpawn->GetActorLocation());
 		}
 	}
 
-	BuildingToPlace = nullptr;
-
-	//CurrentSelectedBuilding = ToSpawn->GetName();
-	//CurrentSelectionHealth = ToSpawn->BuildingHealth;
-	//CurrentSelectionMaxHealth = ToSpawn->BuildingMaxHealth;
-	SelectedUnits.Empty(); // empty 
-	//UpdateOwnedBuildings();
+	BuildingToPlace = nullptr;	
+	SelectedUnits.Empty(); // empty 	
 }
 
 void APController::AddToOwnedBuildings(ABuilding* actor) {
@@ -338,6 +341,8 @@ void APController::AddToOwnedBuildings(ABuilding* actor) {
 		if (actor == OwnedBuildings[i]) return;
 	}
 	if (actor->BuildingName == "Market Place") GenerateMarket();
+
+	HudMessage->ShowCompletionMessage(actor->BuildingName + " has been built");
 	OwnedBuildings.Add(actor);
 }
 
@@ -355,7 +360,7 @@ void APController::RemoveFromOwnedBuildings(ABuilding* actor) {
 #pragma region Building Spawn Management
 
 void APController::AddUnitToBuildingSpawnList(TEnumAsByte<EUnitList::All> unit) {
-	SelectedBuildings[0]->AddUnitToSpawnList(unit, this);
+	SelectedBuildings[0]->AddUnitToSpawnList(unit);
 	Debug("added to list 2");
 }
 
@@ -370,14 +375,13 @@ UControllerHudMessages* APController::GetHudMessageClass() {
 void APController::DetermineSelectedUnit() {
 
 	if (SelectedUnits.Num() > 0) {
-		if (SelectionDetails == nullptr) SelectionDetails = NewObject<UPlayerSelection>(this);
 
 		AUnits* thisunit = SelectedUnits[0];
 
 		TEnumAsByte<EUnitInstructions::EUnitInstruction> instruction = EUnitInstructions::UI_None;
 		if (thisunit->UnitTask->HasTask()) instruction = thisunit->UnitTask->GetInstruction();
 
-		SelectionDetails->SetSelection(
+		ControllerHud->SetSelection(
 			thisunit->GetName(),
 			thisunit->GetHealth(),
 			thisunit->GetMaxHealth(),
@@ -389,11 +393,9 @@ void APController::DetermineSelectedUnit() {
 		SetHasSelectedEntity(true);
 	}
 	else if (SelectedBuildings.Num() > 0) {
-		if (SelectionDetails == nullptr) SelectionDetails = NewObject<UPlayerSelection>(this);
-
 		ABuilding* building = SelectedBuildings[0];
 
-		SelectionDetails->SetSelection(
+		ControllerHud->SetSelection(
 			building->GetName(),
 			building->GetHealth(),
 			building->GetMaxHealth(),
@@ -404,12 +406,10 @@ void APController::DetermineSelectedUnit() {
 
 		SetHasSelectedEntity(true);
 	}
-	else if (SelectedResources.Num() > 0) {
-		if (SelectionDetails == nullptr) SelectionDetails = NewObject<UPlayerSelection>(this);
-
+	else if (SelectedResources.Num() > 0) {	
 		AResource* res = SelectedResources[0];
 
-		SelectionDetails->SetSelection(
+		ControllerHud->SetSelection(
 			res->GetName(),
 			res->ResourceCount,
 			res->ResourceCountOriginal,
@@ -421,17 +421,14 @@ void APController::DetermineSelectedUnit() {
 	}
 	else {
 		SetHasSelectedEntity(false);
-		SelectionDetails = nullptr;
+		//ControllerHud = nullptr;
 	}
 }
 
-UPlayerSelection* APController::GetSelectionDetails() {
-	return SelectionDetails;
+UControllerHud* APController::GetControllerHud() {
+	return ControllerHud;
 }
 
-void APController::UpdateSelectedUnit() {
-
-}
 
 bool APController::GetHasSelectedEntity() {
 	return HasSelectedEntity;
@@ -459,61 +456,6 @@ void APController::SetShowHudMessage(bool val) {
 
 FString APController::GetShowHudMessageText() {
 	return HudMessage->Message;
-}
-
-void APController::HighlightHoveredUnit() {
-	FHitResult Hit;
-	GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, false, Hit);
-
-	if (AActor* actor = Hit.GetActor()) {
-
-		if (AUnits* unit = Cast<AUnits>(actor)) {
-			unit->bIsHighlighted = true;
-			HighlightedUnit = unit;
-			HighlightedUnit->ShowHighlighDecals();
-		}
-		else {
-			if (HighlightedUnit != nullptr) {
-				HighlightedUnit->bIsHighlighted = false;
-				HighlightedUnit = nullptr;
-			}
-		}
-	}
-}
-
-#pragma endregion
-
-#pragma region Widgets
-
-void APController::SetWidgetToShow() {
-	bool foundBuilder = false;
-	if (SelectedUnits.Num() > 0) {
-		for (int32 i = 0; i < SelectedUnits.Num(); i++) {
-			if (SelectedUnits[i]->CanBuild) {
-				//Hudptr->ShowWidget(EWidgets::EWidgetToShow::W_Selection);
-				foundBuilder = true;
-				break;
-			}
-		}
-		if (!foundBuilder) return; // set widget to army unit
-	}
-	else if (SelectedBuildings.Num() > 0) {
-		ABuilding* firstBuilding = SelectedBuildings[0];
-
-		//Hudptr->HideAllWidgets();
-
-		//switch (firstBuilding->GetBuildingType()) {
-
-		//case EAvailableBuildings::B_Barracks:
-		//	//Hudptr->ShowWidget(EWidgets::W_Barracks);
-		//}
-	}
-	else{ }
-		//Hudptr->HideAllWidgets();
-}
-
-TEnumAsByte<EWidgets::EWidgetToShow> APController::GetWidgetToShow() {
-	return WidgetToShow;
 }
 
 #pragma endregion

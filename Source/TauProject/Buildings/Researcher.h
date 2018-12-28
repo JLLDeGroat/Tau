@@ -91,10 +91,16 @@ public:
 		FString GetResearchCostUIString();
 
 	UFUNCTION(BlueprintCallable)
+		FString GetResearchAdditiveCostUIString();
+
+	UFUNCTION(BlueprintCallable)
 		bool GetIsCompletedResearch();
 
 	UFUNCTION(BlueprintCallable)
 		FString GetDisplayName();
+
+	UFUNCTION(BlueprintCallable)
+		TEnumAsByte<EResearchList::EResearhables> GetResearchType();
 
 	bool GetHasStarted();
 	bool GetIsFinished();

@@ -4,6 +4,7 @@
 
 
 
+
 void UBluePrintUtils::Create(UClass *ObjectClass, UObject* &CreatedObject)
 {
 	//NewNode = new ObjectType();

@@ -28,7 +28,7 @@ public:
 	
 
 	UFUNCTION(BlueprintCallable, Category = "floats")
-		float FloorFloat(float flt);
+		static float FloorFloat(float flt);
 
 	UFUNCTION(BlueprintCallable, Category = "floats")
 		FString FloatToStringWithDecimal(float flt);

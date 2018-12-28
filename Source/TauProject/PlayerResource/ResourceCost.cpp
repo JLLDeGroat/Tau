@@ -67,3 +67,12 @@ FString UResourceCost::GetResourceType() {
 			return "Resource";
 	}
 }
+
+
+FString UResourceCost::ResourceListAsUIString(TArray<UResourceCost*> arrayList) {
+	FString returnString;
+	for (int32 i = 0; i < arrayList.Num(); i++) {
+		returnString += FString::SanitizeFloat(arrayList[i]->Amount) + "x " + arrayList[i]->GetResourceType() + "   ";
+	}
+	return returnString;
+}

@@ -54,11 +54,21 @@ void ABuilding::PostConstructionMethod() {
 	this->MaxHealth = UBuildingStructs::SetBuildingHealth(this->BuildingType);
 	this->Description = UBuildingStructs::SetBuildingDescription(this->BuildingType);
 	this->Health = 1;
-	this->ResearchObject = UBuildingStructs::SetBuildingsResearchableItems(this->BuildingType);
+	
 
 	SetBuildCosts(UBuildingStructs::SetBuildingResourceCost(this->BuildingType));
 	SetResearchCosts(UBuildingStructs::SetBuildingResearchCost(this->BuildingType));
 	SetNeededBuildingList(UBuildingStructs::SetBuildingsBuildingNeededList(this->BuildingType));
+
+	//TArray<EAvailableBuildings::EAvailableBuildings> spawnableBuildingActors = UBuildingStructs::SetBuildingsBuildableBuildings(this->BuildingType);
+	/*for (int32 i = 0; i < spawnableBuildingActors.Num(); i++) {
+		if (ABuilding* isBuilding = Cast<ABuilding>(spawnableBuildingActors[i])) {
+			this->SpawnableBuildings.Add(isBuilding);
+		}
+	}*/
+
+	//this->SpawnableUnits = UBuildingStructs::SetBuildingsSpawnableUnits(this->BuildingType);
+	this->ResearchObject = UBuildingStructs::SetBuildingsResearchableItems(this->BuildingType);
 
 	if (this->IsConverter)
 		this->ResourceConverter = UBuildingStructs::SetConversionIfConverterBuilding(this->BuildingType);
@@ -70,7 +80,6 @@ void ABuilding::PostConstructionMethod() {
 void ABuilding::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 // Called every frame
@@ -128,6 +137,10 @@ float ABuilding::GetHealth(){
 }
 float ABuilding::GetMaxHealth() {
 	return MaxHealth;
+}
+
+TEnumAsByte<EAvailableBuildings::EAvailableBuildings> ABuilding::GetBuildingType() {
+	return this->BuildingType;
 }
 
 #pragma endregion
@@ -317,6 +330,11 @@ AController* ABuilding::GetPlayerController() {
 void ABuilding::SetIsConstructed(bool val) {
 	this->IsConstructed = val;
 	this->SetBuildingState(EBuildStates::BS_Complete);
+
+	if (val) {
+		APController* controller = Cast<APController>(control);
+		controller->AddToOwnedBuildings(this);
+	}
 }
 
 #pragma endregion
@@ -333,10 +351,6 @@ void ABuilding::SetBuildingState(TEnumAsByte<EBuildStates::EBuildingStates> stat
 
 TEnumAsByte<EBuildStates::EBuildingStates> ABuilding::GetCurrentState() {
 	return CurrentBuildingState;
-}
-
-TEnumAsByte<EAvailableBuildings::EAvailableBuildings> ABuilding::GetBuildingType() {
-	return BuildingType;
 }
 
 #pragma endregion
@@ -400,21 +414,29 @@ void ABuilding::ChangeStateOnHealthChange() {
 
 #pragma region UnitSpawning 
 
-void ABuilding::AddUnitToSpawnList(TEnumAsByte<EUnitList::All> unit, AController* controller) {
-	AUnits* unitClass = NewObject<AUnits>();
-	unitClass = unitClass->GetUnitClassOfType(unit);
+void ABuilding::AddUnitToSpawnList(TEnumAsByte<EUnitList::All> unit) {
+	if (AUnits* unitToSpawn = Cast<AUnits>(UnitStructs::GetUnitClass(unit))) {
+			
+		APController* playerCon = Cast<APController>(control);
 
-	APController* playerCon = Cast<APController>(controller);
+		TArray<UResourceCost*> unitCost = UnitStructs::GetInitialBuildCostArray(unit);
+		float unitSpawnTime = UnitStructs::GetInitialSpawnTime(unit);
 
-	if (!playerCon->resources->CanAffordResourceList(unitClass->GetBuildCost())) return; // could not afford the unit
+		if (!playerCon->resources->CanAffordResourceList(unitCost)) {
+			playerCon->HudMessage->ShowMessage("Could not afford to train " + unitToSpawn->DisplayName);
+			return; // could not afford the unit
+		}
 
-	playerCon->resources->AffectResouceListOnCounter(unitClass->GetBuildCost(), false);
+		playerCon->resources->AffectResouceListOnCounter(unitCost, false);
 
-	UBuildingSpawn* SpawnItem = NewObject<UBuildingSpawn>();
+		UBuildingSpawn* SpawnItem = NewObject<UBuildingSpawn>();		
 
-	SpawnItem->SetupSpawnitem(unitClass, unitClass->GetSpawnTime(), controller);
-
-	SpawnList.Add(SpawnItem);
+		SpawnItem->SetupSpawnitem(unitToSpawn, unitSpawnTime, control);
+		SpawnList.Add(SpawnItem);
+	}
+	else {
+		Debug("Count not find Unit to spawn");
+	}
 }
 
 void ABuilding::SpawnUnitTick(float DeltaTime) {
@@ -427,12 +449,13 @@ void ABuilding::SpawnUnitTick(float DeltaTime) {
 
 		if (spawner->IsSpawncomplete()) {
 			FVector spawnLocation = (this->GetActorForwardVector() * 150) + this->GetActorLocation() + (this->GetActorLocation().Z + 50);
-			// (GetActorForwardVector() * 100) 100 being the amount forward it spawns
-
+			
 			auto spawnedinUnit = spawner->unit->SpawnUnitOfType(spawner->GetUnit()->ThisUnitType, spawnLocation, this->GetActorRotation(), GetWorld());
 					
 			spawnedinUnit->SetController(spawner->GetUnitController());
 			spawnedinUnit->SetUnitOwner(EUnitOwnerships::UO_Player);
+
+			Cast<APController>(control)->HudMessage->ShowCompletionMessage(spawnedinUnit->DisplayName + " has joined the fray");
 
 			SpawnList.Remove(spawner);
 		}
@@ -606,6 +629,7 @@ void ABuilding::BeginResearching(TEnumAsByte<EResearchList::EResearhables> resea
 	if (toResearch == nullptr) {
 		controller->HudMessage->ShowMessage("Finished this research tree");
 		Debug("Could not find suitable research");
+		return;
 	}
 
 	if (!controller->resources->CanAffordResourceList(toResearch->AdditiveResearchCost)) {
@@ -622,22 +646,20 @@ void ABuilding::BeginResearching(TEnumAsByte<EResearchList::EResearhables> resea
 	Debug("Started Researching " + toResearch->DisplayName);
 }
 
+bool ABuilding::GetIsCurrentlyResearching() {
+	return this->CurrentlyResearching;
+}
 
 void ABuilding::ResearchTick(float DeltaTime) {
 	CurrentlyResearchingObject->UpdateResearch(DeltaTime);
 	Debug("ResearchTick");
 	if (CurrentlyResearchingObject->GetIsFinished()) {
 		//show screen to say completed
-		Debug("Finished Researching " + CurrentlyResearchingObject->Name);
 		CurrentlyResearching = false;
 
-		Debug(CurrentlyResearchingObject->Name);
-		Debug(CurrentlyResearchingObject->Description);		
-
 		APController* pCon = Cast<APController>(control);
-
+		pCon->HudMessage->ShowCompletionMessage(CurrentlyResearchingObject->DisplayName + " Has finished being researched");
 		pCon->AddToResearchList(CurrentlyResearchingObject);
-		Debug("Added to Players completion list");
 	}
 }
 
@@ -645,61 +667,8 @@ void ABuilding::ResearchTick(float DeltaTime) {
 
 #pragma endregion
 
+
 #pragma region Utils
-
-ABuilding* ABuilding::FindOrSpawnBuilding(TEnumAsByte<EAvailableBuildings::EAvailableBuildings> building, bool Find, UWorld* world) {
-
-	switch (building) {
-
-	case EAvailableBuildings::EAvailableBuildings::B_Barracks:
-		if (Find) return NewObject<ABarracks>();
-		else return world->SpawnActor<ABarracks>();		
-
-	case EAvailableBuildings::EAvailableBuildings::B_Storage:
-		if (Find) return NewObject<AStorage>();
-		else return world->SpawnActor<AStorage>();
-		
-
-	case EAvailableBuildings::EAvailableBuildings::B_SawMill:
-		if (Find) return NewObject<ASawMill>();
-		else return world->SpawnActor<ASawMill>();
-		
-
-	case EAvailableBuildings::EAvailableBuildings::B_Farm:
-		if (Find) return NewObject<AFarm>();
-		else return world->SpawnActor<AFarm>();
-
-	case EAvailableBuildings::EAvailableBuildings::B_IronForge:
-		if (Find) return NewObject<AIronForge>();
-		else return world->SpawnActor<AIronForge>();
-
-	case EAvailableBuildings::EAvailableBuildings::B_CopperForge:
-		if (Find) return NewObject<ACopperForge>();
-		else return world->SpawnActor<ACopperForge>();
-
-	case EAvailableBuildings::EAvailableBuildings::B_OreRefinery:
-		if (Find) return NewObject<AOreRefinery>();
-		else return world->SpawnActor<AOreRefinery>();
-
-	case EAvailableBuildings::EAvailableBuildings::B_MarketPlace:
-		if (Find) return NewObject<AMarketPlace>();
-		else return world->SpawnActor<AMarketPlace>();
-
-	case EAvailableBuildings::EAvailableBuildings::B_FarmLand:
-		if (Find) return NewObject<AFarmField>();
-		else return world->SpawnActor<AFarmField>();
-
-	case EAvailableBuildings::EAvailableBuildings::B_PhylosopherCave:
-		if (Find) return NewObject<APhylosopherCave>();
-		else return world->SpawnActor<APhylosopherCave>();
-
-	case EAvailableBuildings::EAvailableBuildings::B_None:
-		return nullptr;
-
-	default:
-		return nullptr;
-	}
-}
 
 void ABuilding::SetMeshOnState() {
 	if (CurrentBuildingState == EBuildStates::BS_Complete) {

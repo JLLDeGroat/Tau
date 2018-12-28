@@ -73,14 +73,6 @@ public:
 
 	void InitializeWidgets();
 
-	void HideWidget(UUserWidget* widget);
-	void HideWidget(TEnumAsByte<EWidgets::EWidgetToShow> widget);
-	void HideAllWidgets();
-	void ShowWidget(UUserWidget* widget);
-	void ShowWidget(TEnumAsByte<EWidgets::EWidgetToShow> widget);
-
-	UUserWidget* GetWidget(TEnumAsByte<EWidgets::EWidgetToShow> widget);
-
 
 
 	#pragma endregion

@@ -38,6 +38,8 @@ ASprout::ASprout()
 	
 	LineOfSight = 220;
 	AttackRange = 140;
+
+	ThisUnitType = EUnitList::UL_Sprout;
 	
 	//stats
 	CriticalChance = 1;
